@@ -1,102 +1,229 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { Movie } from '../../types/movie'
+import MovieList from '../components/MovieList'
 
-interface Movie {
-  id: number
-  title: string
-  year?: number
-  runtime?: string
-  genres?: string
-  description?: string
-  rating?: number
+const MOVIES_PER_PAGE = 10;
+
+interface Filters {
+  year?: number;
+  genre?: string;
+  minRating?: number;
+}
+
+type SortOption = 'title' | 'rating_desc' | 'rating_asc' | 'most_rated';
+
+interface MovieRating {
+  avg: number;
+  count: number;
+  sum: number;
 }
 
 export default function Movies() {
   const [movies, setMovies] = useState<Movie[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
+  const [filters, setFilters] = useState<Filters>({})
+  const [availableYears, setAvailableYears] = useState<number[]>([])
+  const [availableGenres, setAvailableGenres] = useState<string[]>([])
+  const [sortBy, setSortBy] = useState<SortOption>('title');
+  const [allRatings, setAllRatings] = useState<{[key: number]: MovieRating}>({});
 
   useEffect(() => {
-    fetchMovies()
-  }, [])
+    fetchAllRatings();
+    fetchFilterOptions();
+  }, []);
 
-  async function fetchMovies() {
-    try {
-      setLoading(true)
-      const { data, error } = await supabase
-        .from('movies')
-        .select('*')
-        .order('title')
+  useEffect(() => {
+    fetchMovies();
+  }, [currentPage, filters, sortBy, searchQuery]);
 
-      if (error) {
-        throw error
-      }
+  async function fetchFilterOptions() {
+    // Get unique years
+    const { data: years } = await supabase
+      .from('movies')
+      .select('year')
+      .order('year')
 
-      if (data) {
-        setMovies(data)
-      }
-    } catch (error) {
-      console.error('Error fetching movies:', error)
-    } finally {
-      setLoading(false)
+    if (years) {
+      const uniqueYears = Array.from(new Set(years.map(m => m.year))).filter(Boolean)
+      setAvailableYears(uniqueYears)
+    }
+
+    // Get unique genres
+    const { data: genres } = await supabase
+      .from('movies')
+      .select('genres')
+
+    if (genres) {
+      const allGenres = genres
+        .map(m => m.genres?.split('|'))
+        .flat()
+        .filter(Boolean)
+      const uniqueGenres = Array.from(new Set(allGenres)).sort()
+      setAvailableGenres(uniqueGenres)
     }
   }
 
   async function handleSearch() {
+    setCurrentPage(1)
+    await fetchMovies()
+  }
+
+  async function fetchAllRatings() {
+    let allRatings: any[] = [];
+    let count = 0;
+    const PAGE_SIZE = 1000;
+
     try {
-      setLoading(true)
-      const { data, error } = await supabase
-        .from('movies')
-        .select('*')
-        .ilike('title', `%${searchQuery}%`)
-        .order('title')
+      while (true) {
+        const { data, error } = await supabase
+          .from('ratings')
+          .select('*')
+          .range(count, count + PAGE_SIZE - 1);
 
-      if (error) {
-        throw error
+        if (error) throw error;
+        if (!data || data.length === 0) break;
+
+        allRatings = [...allRatings, ...data];
+        if (data.length < PAGE_SIZE) break;
+        count += PAGE_SIZE;
       }
 
-      if (data) {
-        setMovies(data)
-      }
+      // Calculate and cache ratings
+      const movieRatings = allRatings.reduce((acc: { [key: number]: MovieRating }, rating) => {
+        if (!acc[rating.movie_id]) {
+          acc[rating.movie_id] = { avg: 0, count: 0, sum: 0 };
+        }
+        const current = acc[rating.movie_id];
+        current.sum += rating.rating;
+        current.count += 1;
+        current.avg = Math.round((current.sum / current.count) * 10) / 10;
+        return acc;
+      }, {});
+
+      setAllRatings(movieRatings);
     } catch (error) {
-      console.error('Error searching movies:', error)
-    } finally {
-      setLoading(false)
+      console.error('Error fetching ratings:', error);
     }
   }
 
-  const renderGenres = (genresString?: string) => {
-    if (!genresString) return null;
-    
-    const genres = genresString.split(',').map(genre => genre.trim());
-    
-    return (
-      <span className="text-gray-400">
-        {genres.map((genre, index) => (
-          <span key={index}>
-            {genre}
-            {index < genres.length - 1 && (
-              <span className="text-gray-600 mx-2"> | </span>
-            )}
-          </span>
-        ))}
-      </span>
-    );
+  async function fetchMovies() {
+    try {
+      setLoading(true);
+
+      // Get all movies with filters (in chunks)
+      let allMovies: any[] = [];
+      let count = 0;
+      const PAGE_SIZE = 1000;
+
+      while (true) {
+        let query = supabase
+          .from('movies')
+          .select('*')
+          .range(count, count + PAGE_SIZE - 1);
+
+        // Apply filters
+        if (filters.year) {
+          query = query.eq('year', filters.year);
+        }
+        if (filters.genre) {
+          query = query.ilike('genres', `%${filters.genre}%`);
+        }
+        if (searchQuery) {
+          query = query.ilike('title', `%${searchQuery}%`);
+        }
+
+        const { data, error } = await query;
+
+        if (error) throw error;
+        if (!data || data.length === 0) break;
+
+        allMovies = [...allMovies, ...data];
+        if (data.length < PAGE_SIZE) break;
+        count += PAGE_SIZE;
+      }
+
+      if (allMovies) {
+        // Transform movies using cached ratings
+        let allTransformedMovies = allMovies.map(movie => ({
+          id: movie.movie_id.toString(),
+          title: movie.title,
+          overview: movie.title,
+          posterPath: '',
+          releaseDate: movie.year?.toString() || '',
+          voteAverage: 0,
+          genres: movie.genres || '',
+          supabaseRatingAverage: allRatings[movie.movie_id]?.avg || null,
+          totalRatings: allRatings[movie.movie_id]?.count || 0
+        }));
+
+        // Sort all movies
+        allTransformedMovies.sort((a, b) => {
+          switch (sortBy) {
+            case 'rating_desc':
+              return (b.supabaseRatingAverage || 0) - (a.supabaseRatingAverage || 0);
+            case 'rating_asc':
+              return (a.supabaseRatingAverage || 0) - (b.supabaseRatingAverage || 0);
+            case 'most_rated':
+              return (b.totalRatings || 0) - (a.totalRatings || 0);
+            default:
+              return a.title.localeCompare(b.title);
+          }
+        });
+
+        setTotalCount(allTransformedMovies.length);
+        const start = (currentPage - 1) * MOVIES_PER_PAGE;
+        const end = start + MOVIES_PER_PAGE;
+        setMovies(allTransformedMovies.slice(start, end));
+      }
+    } catch (error) {
+      console.error('Error fetching movies:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleFilterChange(key: keyof Filters, value: any) {
+    setCurrentPage(1) // Reset to first page when filter changes
+    setFilters(prev => ({
+      ...prev,
+      [key]: value === '' ? undefined : value
+    }))
+  }
+
+  const handleGenreClick = (genre: string) => {
+    setCurrentPage(1);
+    setFilters(prev => ({
+      ...prev,
+      genre: prev.genre === genre ? undefined : genre // Toggle genre filter
+    }));
   };
+
+  const totalPages = Math.ceil(totalCount / MOVIES_PER_PAGE)
 
   return (
     <div className="space-y-8">
-      {/* Search Section */}
+      {/* Search and Filters Section */}
       <div className="card bg-gradient-to-r from-blue-900 to-blue-800 border-none">
         <h2 className="text-2xl font-bold mb-6 text-white">Discover Your Next Favorite Movie</h2>
-        <div className="flex gap-4">
+        
+        {/* Search */}
+        <div className="flex gap-4 mb-6">
           <input 
             type="text" 
             placeholder="Search for a movie..." 
             className="input-field flex-grow"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value)
+              if (e.target.value === '') {
+                handleSearch()
+              }
+            }}
             onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
           />
           <button 
@@ -106,64 +233,107 @@ export default function Movies() {
             Search
           </button>
         </div>
+
+        {/* Filters and Sorting */}
+        <div className="flex gap-4 flex-wrap items-center">
+          {/* Year Filter */}
+          <select
+            className="input-field"
+            value={filters.year || ''}
+            onChange={(e) => handleFilterChange('year', e.target.value)}
+          >
+            <option value="">All Years</option>
+            {availableYears.map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+
+          {/* Sort Options */}
+          <select
+            className="input-field"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as SortOption)}
+          >
+            <option value="title">Title (A-Z)</option>
+            <option value="rating_desc">Highest Rated</option>
+            <option value="rating_asc">Lowest Rated</option>
+            <option value="most_rated">Most Rated</option>
+          </select>
+
+          {/* Active Genre Filter Display */}
+          {filters.genre && (
+            <div className="flex items-center gap-2">
+              <span className="text-gray-400">Genre:</span>
+              <button
+                onClick={() => handleFilterChange('genre', '')}
+                className="px-3 py-1 rounded-full bg-primary text-white 
+                         hover:bg-primary/80 transition-colors flex items-center gap-2"
+              >
+                {filters.genre}
+                <span className="text-sm">×</span>
+              </button>
+            </div>
+          )}
+
+          {/* Clear Filters */}
+          {(filters.year || filters.genre) && (
+            <button
+              className="btn-secondary"
+              onClick={() => {
+                setFilters({});
+                setCurrentPage(1);
+                setSortBy('title');
+              }}
+            >
+              Clear All
+            </button>
+          )}
+        </div>
       </div>
       
-      {/* Movie List */}
+      {/* Movie List and Pagination (unchanged) */}
       <div className="space-y-4">
         {loading ? (
           <div className="text-center text-gray-400">Loading movies...</div>
         ) : movies.length === 0 ? (
           <div className="text-center text-gray-400">No movies found</div>
         ) : (
-          movies.map((movie) => (
-            <div key={movie.id} className="card hover:border-primary group transition-all duration-200">
-              <div className="flex justify-between items-start">
-                <div className="space-y-2">
-                  <h3 className="text-xl font-semibold text-gray-100 group-hover:text-primary transition-colors">
-                    {movie.title}
-                  </h3>
-                  <div className="flex items-center space-x-4 text-sm">
-                    {movie.year && (
-                      <>
-                        <span className="text-gray-400">{movie.year}</span>
-                        <span className="text-gray-600">•</span>
-                      </>
-                    )}
-                    {movie.runtime && (
-                      <>
-                        <span className="text-gray-400">{movie.runtime}</span>
-                        <span className="text-gray-600">•</span>
-                      </>
-                    )}
-                    {renderGenres(movie.genres)}
-                  </div>
-                  {movie.description && (
-                    <p className="text-gray-300 line-clamp-2 mt-2">
-                      {movie.description}
-                    </p>
-                  )}
-                </div>
-                <div className="flex flex-col items-end space-y-2">
-                  {movie.rating && (
-                    <div className="flex items-center">
-                      <span className="text-yellow-500">
-                        {'★'.repeat(Math.floor(movie.rating))}
-                      </span>
-                      <span className="text-gray-600">
-                        {'★'.repeat(5 - Math.floor(movie.rating))}
-                      </span>
-                      <span className="text-gray-400 text-sm ml-2">
-                        {movie.rating.toFixed(1)}/5.0
-                      </span>
-                    </div>
-                  )}
-                  <button className="btn-primary text-sm">
-                    View Details
-                  </button>
-                </div>
-              </div>
+          <>
+            <MovieList 
+              movies={movies} 
+              onGenreClick={handleGenreClick}
+            />
+            
+            <div className="flex justify-center items-center space-x-4 mt-8">
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className={`px-4 py-2 rounded ${
+                  currentPage === 1 
+                    ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                    : 'bg-primary text-white hover:bg-primary/80'
+                }`}
+              >
+                Previous
+              </button>
+              
+              <span className="text-gray-400">
+                Page {currentPage} of {totalPages}
+              </span>
+              
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className={`px-4 py-2 rounded ${
+                  currentPage === totalPages
+                    ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                    : 'bg-primary text-white hover:bg-primary/80'
+                }`}
+              >
+                Next
+              </button>
             </div>
-          ))
+          </>
         )}
       </div>
     </div>
