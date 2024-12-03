@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Movie, MovieDetails } from '@types/movie';
+import type { Movie, MovieDetails } from '../../../types/movie';
 import MovieList from '../../components/MovieList';
 import RatingComponent from '../../components/RatingComponent';
 
@@ -69,7 +69,7 @@ export default function MovieDetailsPage({ params }: { params: { id: string } })
           `)
           .neq('movie_id', params.id)
           // Match any of the genres
-          .or(genres.map(genre => `genres.ilike.%${genre.trim()}%`).join(','))
+          .or(genres.map((genre: string) => `genres.ilike.%${genre.trim()}%`).join(','))
           // Get movies within 10 years range
           .gte('year', movieYear - 10)
           .lte('year', movieYear + 10)
@@ -84,8 +84,8 @@ export default function MovieDetailsPage({ params }: { params: { id: string } })
           const scoredMovies = relatedData.map(movie => {
             const movieGenres = movie.genres?.split('|') || [];
             // Count how many genres match
-            const matchingGenres = genres.filter(g => 
-              movieGenres.some(mg => mg.trim().toLowerCase() === g.trim().toLowerCase())
+            const matchingGenres = genres.filter((g: string) => 
+              movieGenres.some((mg: string) => mg.trim().toLowerCase() === g.trim().toLowerCase())
             ).length;
             
             return {
@@ -100,18 +100,26 @@ export default function MovieDetailsPage({ params }: { params: { id: string } })
             .slice(0, 4)
             .map(({ movie }) => movie);
 
-          const transformedRelated = topRelated.map(movie => ({
-            id: movie.movie_id.toString(),
-            title: movie.title,
-            overview: movie.overview,
-            posterPath: movie.poster_path || '',
-            releaseDate: movie.year?.toString() || '',
-            voteAverage: 0,
-            genres: movie.genres || '',
-            supabaseRatingAverage: movie.ratings ? 
-              (movie.ratings.reduce((sum: number, r: any) => sum + r.rating, 0) / movie.ratings.length) : null,
-            totalRatings: movie.ratings?.length || 0
-          }));
+          const transformedRelated = topRelated.map(movie => {
+            // Calculate average rating from all ratings
+            const ratings = movie.ratings || [];
+            const totalRatings = ratings.length;
+            const ratingAverage = totalRatings > 0 
+              ? Math.round((ratings.reduce((sum: number, r: any) => sum + r.rating, 0) / totalRatings) * 10) / 10 
+              : null;
+
+            return {
+              id: movie.movie_id.toString(),
+              title: movie.title,
+              overview: movie.overview,
+              posterPath: movie.poster_path || '',
+              releaseDate: movie.year?.toString() || '',
+              voteAverage: 0,
+              genres: movie.genres?.split('|') || [],
+              supabaseRatingAverage: ratingAverage,
+              totalRatings
+            };
+          });
 
           console.log('Transformed related movies:', transformedRelated);
           setRelatedMovies(transformedRelated);

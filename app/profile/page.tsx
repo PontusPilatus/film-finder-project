@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useRouter } from 'next/navigation'
-import { Movie } from '@types/movie'
+import type { Movie } from '../../types/movie'
 import MovieList from '../components/MovieList'
 
 interface UserProfile {
@@ -64,8 +64,6 @@ export default function Profile() {
 
   async function fetchUserRatings(userId: number) {
     try {
-      console.log('Fetching ratings for userId:', userId);
-
       // First get the ratings with movie IDs
       const { data: ratings, error: ratingsError } = await supabase
         .from('ratings')
@@ -78,16 +76,18 @@ export default function Profile() {
       }
 
       if (!ratings || ratings.length === 0) {
-        console.log('No ratings found for user');
         setUserRatings([]);
         return;
       }
 
-      // Then get the movies details
+      // Then get the movies details with all ratings
       const movieIds = ratings.map(r => r.movie_id);
       const { data: movies, error: moviesError } = await supabase
         .from('movies')
-        .select('*')
+        .select(`
+          *,
+          ratings:ratings(rating)
+        `)
         .in('movie_id', movieIds);
 
       if (moviesError) {
@@ -96,27 +96,31 @@ export default function Profile() {
       }
 
       // Combine ratings with movie details
-      const transformedRatings: UserRating[] = ratings.map(rating => {
-        const movie = movies?.find(m => m.movie_id === rating.movie_id);
+      const transformedRatings: UserRating[] = ratings.map(userRating => {
+        const movie = movies?.find(m => m.movie_id === userRating.movie_id);
+        const allRatings = movie?.ratings || [];
+        const totalRatings = allRatings.length;
+        const averageRating = totalRatings > 0
+          ? Math.round((allRatings.reduce((sum: number, r: any) => sum + r.rating, 0) / totalRatings) * 10) / 10
+          : null;
+
         return {
-          rating: rating.rating,
+          rating: userRating.rating,
           movie: {
             id: movie?.movie_id.toString() || '',
             title: movie?.title || '',
             overview: movie?.overview || '',
             posterPath: movie?.poster_path || '',
             releaseDate: movie?.year?.toString() || '',
-            voteAverage: rating.rating,
-            genres: movie?.genres || '',
-            supabaseRatingAverage: rating.rating,
-            totalRatings: 1
+            voteAverage: userRating.rating,
+            genres: movie?.genres?.split('|') || [],
+            supabaseRatingAverage: averageRating,
+            totalRatings
           }
         };
       });
 
-      console.log('Transformed ratings:', transformedRatings);
       setUserRatings(transformedRatings);
-
     } catch (error) {
       console.error('Error in fetchUserRatings:', error);
     }
@@ -234,11 +238,10 @@ export default function Profile() {
                 <MovieList 
                   movies={userRatings.map(r => ({
                     ...r.movie,
-                    supabaseRatingAverage: r.rating
+                    voteAverage: r.rating
                   }))}
                   showDelete={true}
                   onRatingDelete={async () => {
-                    // Refresh ratings after deletion
                     await fetchUserRatings(profile?.user_id || 0);
                   }}
                 />

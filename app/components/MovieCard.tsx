@@ -14,6 +14,10 @@ interface MovieCardProps {
 const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, onRatingDelete }) => {
   console.log('Movie ID:', movie.id);
 
+  const genres = Array.isArray(movie.genres) 
+    ? movie.genres 
+    : movie.genres?.split('|') || [];
+
   return (
     <Link href={`/movies/${movie.id}`} className="movie-card block" onClick={(e) => {
       console.log('Card clicked, navigating to:', `/movies/${movie.id}`);
@@ -30,11 +34,11 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, 
               )}
               {movie.genres && (
                 <div className="flex flex-wrap gap-2">
-                  {movie.genres.split('|').map((genre, index) => (
+                  {genres.map((genre, index) => (
                     <button
                       key={`${movie.id}-${genre}`}
                       onClick={(e) => {
-                        e.preventDefault(); // Prevent navigation
+                        e.preventDefault();
                         onGenreClick?.(genre.trim());
                       }}
                       className="px-2 py-1 text-xs rounded-full bg-blue-900/50 text-blue-200 
