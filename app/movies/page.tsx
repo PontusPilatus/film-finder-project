@@ -30,10 +30,8 @@ export default function Movies() {
   const [availableYears, setAvailableYears] = useState<number[]>([])
   const [availableGenres, setAvailableGenres] = useState<string[]>([])
   const [sortBy, setSortBy] = useState<SortOption>('title');
-  const [allRatings, setAllRatings] = useState<{[key: number]: MovieRating}>({});
 
   useEffect(() => {
-    fetchAllRatings();
     fetchFilterOptions();
   }, []);
 
@@ -73,113 +71,73 @@ export default function Movies() {
     await fetchMovies()
   }
 
-  async function fetchAllRatings() {
-    let allRatings: any[] = [];
-    let count = 0;
-    const PAGE_SIZE = 1000;
-
-    try {
-      while (true) {
-        const { data, error } = await supabase
-          .from('ratings')
-          .select('*')
-          .range(count, count + PAGE_SIZE - 1);
-
-        if (error) throw error;
-        if (!data || data.length === 0) break;
-
-        allRatings = [...allRatings, ...data];
-        if (data.length < PAGE_SIZE) break;
-        count += PAGE_SIZE;
-      }
-
-      // Calculate and cache ratings
-      const movieRatings = allRatings.reduce((acc: { [key: number]: MovieRating }, rating) => {
-        if (!acc[rating.movie_id]) {
-          acc[rating.movie_id] = { avg: 0, count: 0, sum: 0 };
-        }
-        const current = acc[rating.movie_id];
-        current.sum += rating.rating;
-        current.count += 1;
-        current.avg = Math.round((current.sum / current.count) * 10) / 10;
-        return acc;
-      }, {});
-
-      setAllRatings(movieRatings);
-    } catch (error) {
-      console.error('Error fetching ratings:', error);
-    }
-  }
-
   async function fetchMovies() {
     try {
       setLoading(true);
 
-      // Get all movies with filters (in chunks)
-      let allMovies: any[] = [];
-      let count = 0;
-      const PAGE_SIZE = 1000;
+      let query = supabase
+        .from('movies')
+        .select(`
+          *,
+          ratings:ratings(rating)
+        `);
 
-      while (true) {
-        let query = supabase
-          .from('movies')
-          .select('*')
-          .range(count, count + PAGE_SIZE - 1);
-
-        // Apply filters
-        if (filters.year) {
-          query = query.eq('year', filters.year);
-        }
-        if (filters.genre) {
-          query = query.ilike('genres', `%${filters.genre}%`);
-        }
-        if (searchQuery) {
-          query = query.ilike('title', `%${searchQuery}%`);
-        }
-
-        const { data, error } = await query;
-
-        if (error) throw error;
-        if (!data || data.length === 0) break;
-
-        allMovies = [...allMovies, ...data];
-        if (data.length < PAGE_SIZE) break;
-        count += PAGE_SIZE;
+      // Apply filters
+      if (filters.year) {
+        query = query.eq('year', filters.year);
+      }
+      if (filters.genre) {
+        query = query.ilike('genres', `%${filters.genre}%`);
+      }
+      if (searchQuery) {
+        query = query.ilike('title', `%${searchQuery}%`);
       }
 
-      if (allMovies) {
-        // Transform movies using cached ratings
-        let allTransformedMovies = allMovies.map(movie => ({
+      const { data: movies, error } = await query;
+
+      if (error) throw error;
+      if (!movies) return;
+
+      // Transform movies and calculate ratings in one pass
+      const transformedMovies = movies.map(movie => {
+        const ratings = movie.ratings || [];
+        const totalRatings = ratings.length;
+        const ratingSum = ratings.reduce((sum: number, r: any) => sum + r.rating, 0);
+        const ratingAverage = totalRatings > 0 ? Math.round((ratingSum / totalRatings) * 10) / 10 : null;
+
+        return {
           id: movie.movie_id.toString(),
           title: movie.title,
-          overview: movie.title,
-          posterPath: '',
+          overview: movie.overview,
+          posterPath: movie.poster_path || '',
           releaseDate: movie.year?.toString() || '',
-          voteAverage: 0,
+          voteAverage: ratingAverage || 0,
           genres: movie.genres || '',
-          supabaseRatingAverage: allRatings[movie.movie_id]?.avg || null,
-          totalRatings: allRatings[movie.movie_id]?.count || 0
-        }));
+          supabaseRatingAverage: ratingAverage,
+          totalRatings
+        };
+      });
 
-        // Sort all movies
-        allTransformedMovies.sort((a, b) => {
-          switch (sortBy) {
-            case 'rating_desc':
-              return (b.supabaseRatingAverage || 0) - (a.supabaseRatingAverage || 0);
-            case 'rating_asc':
-              return (a.supabaseRatingAverage || 0) - (b.supabaseRatingAverage || 0);
-            case 'most_rated':
-              return (b.totalRatings || 0) - (a.totalRatings || 0);
-            default:
-              return a.title.localeCompare(b.title);
-          }
-        });
+      // Sort movies
+      transformedMovies.sort((a, b) => {
+        switch (sortBy) {
+          case 'rating_desc':
+            return (b.supabaseRatingAverage || 0) - (a.supabaseRatingAverage || 0);
+          case 'rating_asc':
+            return (a.supabaseRatingAverage || 0) - (b.supabaseRatingAverage || 0);
+          case 'most_rated':
+            return b.totalRatings - a.totalRatings;
+          default:
+            return a.title.localeCompare(b.title);
+        }
+      });
 
-        setTotalCount(allTransformedMovies.length);
-        const start = (currentPage - 1) * MOVIES_PER_PAGE;
-        const end = start + MOVIES_PER_PAGE;
-        setMovies(allTransformedMovies.slice(start, end));
-      }
+      setTotalCount(transformedMovies.length);
+      const start = (currentPage - 1) * MOVIES_PER_PAGE;
+      const end = start + MOVIES_PER_PAGE;
+      console.log('Transformed movies before setting:', transformedMovies);
+      setMovies(transformedMovies.slice(start, end));
+
     } catch (error) {
       console.error('Error fetching movies:', error);
     } finally {

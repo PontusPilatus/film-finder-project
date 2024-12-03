@@ -36,7 +36,10 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie }) => {
               <span>{new Date(movie.releaseDate).getFullYear()}</span>
               <span className="flex items-center">
                 <span className="text-yellow-400 mr-1">★</span>
-                {movie.voteAverage.toFixed(1)}
+                {movie.supabaseRatingAverage ? movie.supabaseRatingAverage.toFixed(1) : 'No ratings'}
+              </span>
+              <span className="text-sm text-gray-400">
+                ({movie.totalRatings} {movie.totalRatings === 1 ? 'rating' : 'ratings'})
               </span>
             </div>
           </div>

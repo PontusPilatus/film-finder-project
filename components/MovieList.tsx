@@ -5,9 +5,10 @@ import MovieCard from './MovieCard';
 interface MovieListProps {
   movies: Movie[];
   title?: string;
+  onGenreClick?: (genre: string) => void;
 }
 
-const MovieList: React.FC<MovieListProps> = ({ movies, title }) => {
+const MovieList: React.FC<MovieListProps> = ({ movies, title, onGenreClick }) => {
   if (movies.length === 0) {
     return (
       <div className="text-center py-10">

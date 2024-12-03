@@ -5,9 +5,9 @@ export interface Movie {
   posterPath: string;
   releaseDate: string;
   voteAverage: number;
-  supabaseRatingAverage?: number | null;
-  totalRatings?: number;
-  genres?: string;
+  genres: string;
+  supabaseRatingAverage: number | null;
+  totalRatings: number;
 }
 
 export interface MovieDetails {
