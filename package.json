@@ -3,7 +3,8 @@
     "@supabase/supabase-js": "^2.x.x",
     "next": "13.x.x",
     "react": "18.x.x",
-    "react-dom": "18.x.x"
+    "react-dom": "18.x.x",
+    "react-icons": "^5.4.0"
   },
   "devDependencies": {
     "@types/node": "^18.x.x",

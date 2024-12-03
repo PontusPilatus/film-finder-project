@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { Movie } from '../../types/movie'
 import MovieList from '../components/MovieList'
+import { FiSearch, FiFilter, FiX } from 'react-icons/fi'
 
 const MOVIES_PER_PAGE = 10;
 
@@ -158,136 +159,143 @@ export default function Movies() {
   const totalPages = Math.ceil(totalCount / MOVIES_PER_PAGE)
 
   return (
-    <div className="space-y-8">
-      {/* Search and Filters Section */}
-      <div className="card bg-gradient-to-r from-blue-900 to-blue-800 border-none">
-        <h2 className="text-2xl font-bold mb-6 text-white">Discover Your Next Favorite Movie</h2>
-        
-        {/* Search */}
-        <div className="flex gap-4 mb-6">
-          <input 
-            type="text" 
-            placeholder="Search for a movie..." 
-            className="input-field flex-grow"
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value)
-              if (e.target.value === '') {
-                handleSearch()
-              }
-            }}
-            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-          />
-          <button 
-            className="btn-primary"
-            onClick={handleSearch}
-          >
-            Search
-          </button>
-        </div>
+    <div className="min-h-screen space-y-12">
+      {/* Hero Section */}
+      <section className="relative">
+        <div className="absolute inset-0 hero-gradient opacity-30"></div>
+        <div className="relative container-wrapper pb-12">
+          <div className="text-center space-y-4 pt-8">
+            <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">
+              Discover Movies
+            </h1>
+            <p className="text-xl text-gray-300">
+              Find your next favorite film from our curated collection
+            </p>
+          </div>
 
-        {/* Filters and Sorting */}
-        <div className="flex gap-4 flex-wrap items-center">
-          {/* Year Filter */}
-          <select
-            className="input-field"
-            value={filters.year || ''}
-            onChange={(e) => handleFilterChange('year', e.target.value)}
-          >
-            <option value="">All Years</option>
-            {availableYears.map(year => (
-              <option key={year} value={year}>{year}</option>
-            ))}
-          </select>
+          {/* Search and Filters Card */}
+          <div className="card mt-8 bg-[var(--background-card)] backdrop-blur-md border-white/10">
+            <div className="space-y-6">
+              {/* Search */}
+              <div className="flex gap-4">
+                <div className="relative flex-grow">
+                  <input 
+                    type="text" 
+                    placeholder="Search for a movie..." 
+                    className="input-field pl-10"
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value)
+                      if (e.target.value === '') handleSearch()
+                    }}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  />
+                  <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                </div>
+                <button 
+                  className="btn-primary"
+                  onClick={handleSearch}
+                >
+                  Search
+                </button>
+              </div>
 
-          {/* Sort Options */}
-          <select
-            className="input-field"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as SortOption)}
-          >
-            <option value="title">Title (A-Z)</option>
-            <option value="rating_desc">Highest Rated</option>
-            <option value="rating_asc">Lowest Rated</option>
-            <option value="most_rated">Most Rated</option>
-          </select>
+              {/* Filters and Sorting */}
+              <div className="flex flex-wrap gap-4 items-center">
+                <select
+                  className="input-field max-w-[200px]"
+                  value={filters.year || ''}
+                  onChange={(e) => handleFilterChange('year', e.target.value)}
+                >
+                  <option value="">All Years</option>
+                  {availableYears.map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
 
-          {/* Active Genre Filter Display */}
-          {filters.genre && (
-            <div className="flex items-center gap-2">
-              <span className="text-gray-400">Genre:</span>
-              <button
-                onClick={() => handleFilterChange('genre', '')}
-                className="px-3 py-1 rounded-full bg-primary text-white 
-                         hover:bg-primary/80 transition-colors flex items-center gap-2"
-              >
-                {filters.genre}
-                <span className="text-sm">×</span>
-              </button>
+                <select
+                  className="input-field max-w-[200px]"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as SortOption)}
+                >
+                  <option value="title">Title (A-Z)</option>
+                  <option value="rating_desc">Highest Rated</option>
+                  <option value="rating_asc">Lowest Rated</option>
+                  <option value="most_rated">Most Rated</option>
+                </select>
+
+                {/* Active Filters */}
+                <div className="flex flex-wrap gap-2">
+                  {filters.genre && (
+                    <span className="px-3 py-1.5 rounded-full bg-blue-500/10 text-blue-400 
+                                   flex items-center gap-2 text-sm">
+                      {filters.genre}
+                      <button
+                        onClick={() => handleFilterChange('genre', '')}
+                        className="hover:text-white transition-colors"
+                      >
+                        <FiX />
+                      </button>
+                    </span>
+                  )}
+
+                  {(filters.year || filters.genre) && (
+                    <button
+                      className="px-3 py-1.5 rounded-full bg-blue-500/10 text-blue-400 
+                               hover:bg-blue-500/20 transition-colors text-sm flex items-center gap-2"
+                      onClick={() => {
+                        setFilters({});
+                        setCurrentPage(1);
+                        setSortBy('title');
+                      }}
+                    >
+                      <FiFilter />
+                      Clear Filters
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
-          )}
-
-          {/* Clear Filters */}
-          {(filters.year || filters.genre) && (
-            <button
-              className="btn-secondary"
-              onClick={() => {
-                setFilters({});
-                setCurrentPage(1);
-                setSortBy('title');
-              }}
-            >
-              Clear All
-            </button>
-          )}
+          </div>
         </div>
-      </div>
-      
-      {/* Movie List and Pagination */}
-      <div className="space-y-4">
+      </section>
+
+      {/* Movie List Section */}
+      <section className="container-wrapper">
         {loading ? (
-          <div className="text-center text-gray-400">Loading movies...</div>
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-400"></div>
+            <p className="mt-4 text-gray-400">Loading movies...</p>
+          </div>
         ) : movies.length === 0 ? (
-          <div className="text-center text-gray-400">No movies found</div>
+          <div className="text-center py-12">
+            <p className="text-xl text-gray-400">No movies found matching your criteria.</p>
+          </div>
         ) : (
-          <>
-            <MovieList 
-              movies={movies} 
-              onGenreClick={handleGenreClick}
-            />
+          <div className="space-y-8">
+            <MovieList movies={movies} />
             
-            <div className="flex justify-center items-center space-x-4 mt-8">
-              <button
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className={`px-4 py-2 rounded ${
-                  currentPage === 1 
-                    ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                    : 'bg-primary text-white hover:bg-primary/80'
-                }`}
-              >
-                Previous
-              </button>
-              
-              <span className="text-gray-400">
-                Page {currentPage} of {totalPages}
-              </span>
-              
-              <button
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className={`px-4 py-2 rounded ${
-                  currentPage === totalPages
-                    ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                    : 'bg-primary text-white hover:bg-primary/80'
-                }`}
-              >
-                Next
-              </button>
-            </div>
-          </>
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center gap-2 mt-8">
+                {Array.from({ length: totalPages }, (_, i) => (
+                  <button
+                    key={i + 1}
+                    onClick={() => setCurrentPage(i + 1)}
+                    className={`px-4 py-2 rounded-lg transition-colors ${
+                      currentPage === i + 1
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20'
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         )}
-      </div>
+      </section>
     </div>
   )
 } 

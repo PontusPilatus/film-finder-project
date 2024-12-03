@@ -1,5 +1,5 @@
 import React from 'react';
-import { Movie } from '@types/movie';
+import { Movie } from '../../types/movie';
 import Link from 'next/link';
 import Image from 'next/image';
 import RatingComponent from './RatingComponent';
@@ -14,9 +14,9 @@ interface MovieCardProps {
 const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, onRatingDelete }) => {
   console.log('Movie ID:', movie.id);
 
-  const genres = Array.isArray(movie.genres) 
+  const genres: string[] = Array.isArray(movie.genres) 
     ? movie.genres 
-    : movie.genres?.split('|') || [];
+    : (movie.genres as string)?.split('|') || [];
 
   return (
     <Link href={`/movies/${movie.id}`} className="movie-card block" onClick={(e) => {
@@ -34,10 +34,10 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, 
               )}
               {movie.genres && (
                 <div className="flex flex-wrap gap-2">
-                  {genres.map((genre, index) => (
+                  {genres.map((genre: string, index: number) => (
                     <button
                       key={`${movie.id}-${genre}`}
-                      onClick={(e) => {
+                      onClick={(e: React.MouseEvent) => {
                         e.preventDefault();
                         onGenreClick?.(genre.trim());
                       }}

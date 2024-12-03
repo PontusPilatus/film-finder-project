@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useRouter } from 'next/navigation'
 import type { Movie } from '../../types/movie'
 import MovieList from '../components/MovieList'
+import { FiUser, FiMail, FiCalendar, FiClock, FiEdit2, FiLogOut } from 'react-icons/fi'
 
 interface UserProfile {
   user_id: number;
@@ -153,103 +154,147 @@ export default function Profile() {
   }
 
   if (loading) {
-    return <div className="text-center text-gray-400">Loading...</div>
+    return (
+      <div className="min-h-[50vh] flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-400"></div>
+          <p className="text-gray-400">Loading your profile...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <div className="flex-grow max-w-4xl mx-auto w-full space-y-8">
-        {/* Profile Card */}
-        <div className="card space-y-6">
-          <h1 className="text-2xl font-bold text-gray-100">Your Profile</h1>
+    <div className="min-h-screen py-12">
+      <div className="container-wrapper max-w-4xl space-y-12">
+        {/* Profile Header */}
+        <div className="text-center space-y-4">
+          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">
+            Your Profile
+          </h1>
+          <p className="text-gray-300 text-lg">
+            Manage your account and view your movie ratings
+          </p>
+        </div>
 
-          <div className="space-y-4">
+        {/* Profile Information */}
+        <div className="card backdrop-blur-lg">
+          <div className="space-y-8">
             {profile ? (
               <>
-                <div>
-                  <label className="text-sm text-gray-400">User ID</label>
-                  <p className="text-gray-100">{profile.user_id}</p>
+                {/* User ID */}
+                <div className="flex items-center gap-4 p-4 rounded-lg bg-blue-500/5 border border-blue-500/10">
+                  <FiUser className="w-5 h-5 text-blue-400" />
+                  <div>
+                    <label className="text-sm text-gray-400">User ID</label>
+                    <p className="text-gray-100">{profile.user_id}</p>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="text-sm text-gray-400">Username</label>
-                  <input
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className="input-field"
-                  />
+                {/* Username */}
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-300">
+                    <FiEdit2 className="w-4 h-4" />
+                    Username
+                  </label>
+                  <div className="flex gap-4">
+                    <input
+                      type="text"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      className="input-field flex-grow"
+                      placeholder="Enter your username"
+                    />
+                    <button
+                      onClick={updateUsername}
+                      className="btn-primary whitespace-nowrap"
+                    >
+                      Update
+                    </button>
+                  </div>
+                </div>
+
+                {/* Email */}
+                <div className="flex items-center gap-4 p-4 rounded-lg bg-blue-500/5 border border-blue-500/10">
+                  <FiMail className="w-5 h-5 text-blue-400" />
+                  <div>
+                    <label className="text-sm text-gray-400">Email</label>
+                    <p className="text-gray-100">{profile.email || 'Not set'}</p>
+                  </div>
+                </div>
+
+                {/* Account Info */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-4 p-4 rounded-lg bg-blue-500/5 border border-blue-500/10">
+                    <FiCalendar className="w-5 h-5 text-blue-400" />
+                    <div>
+                      <label className="text-sm text-gray-400">Account Created</label>
+                      <p className="text-gray-100">
+                        {new Date(profile.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4 p-4 rounded-lg bg-blue-500/5 border border-blue-500/10">
+                    <FiClock className="w-5 h-5 text-blue-400" />
+                    <div>
+                      <label className="text-sm text-gray-400">Last Login</label>
+                      <p className="text-gray-100">
+                        {profile.last_login
+                          ? new Date(profile.last_login).toLocaleString()
+                          : 'Never'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sign Out Button */}
+                <div className="flex justify-end pt-4">
                   <button
-                    onClick={updateUsername}
-                    className="btn-primary mt-2"
+                    onClick={handleSignOut}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all duration-200"
                   >
-                    Update Username
+                    <FiLogOut className="w-4 h-4" />
+                    Sign Out
                   </button>
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-400">Email</label>
-                  <p className="text-gray-100">{profile.email || 'Not set'}</p>
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-400">Account Created</label>
-                  <p className="text-gray-100">
-                    {new Date(profile.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-400">Last Login</label>
-                  <p className="text-gray-100">
-                    {profile.last_login
-                      ? new Date(profile.last_login).toLocaleString()
-                      : 'Never'}
-                  </p>
                 </div>
               </>
             ) : (
-              <p className="text-gray-400">No profile data found</p>
+              <p className="text-center text-gray-400">No profile data found</p>
             )}
-          </div>
-
-          <div className="flex justify-end">
-            <button
-              onClick={handleSignOut}
-              className="btn-primary bg-red-600 hover:bg-red-700"
-            >
-              Sign Out
-            </button>
           </div>
         </div>
 
-        {/* Ratings Card */}
-        <div className="card space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-gray-100">Your Ratings</h2>
-            <span className="text-gray-400">
-              {userRatings.length} {userRatings.length === 1 ? 'movie' : 'movies'} rated
-            </span>
-          </div>
+        {/* Ratings Section */}
+        <div className="space-y-8">
+          <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">
+            Your Ratings
+          </h2>
+          
+          <div className="card backdrop-blur-lg">
+            <div className="flex justify-between items-center mb-6">
+              <p className="text-gray-300">
+                You have rated {userRatings.length} {userRatings.length === 1 ? 'movie' : 'movies'}
+              </p>
+            </div>
 
-          {userRatings.length > 0 ? (
-            <>
-              <div className="space-y-4">
-                <MovieList 
-                  movies={userRatings.map(r => ({
-                    ...r.movie,
-                    voteAverage: r.rating
-                  }))}
-                  showDelete={true}
-                  onRatingDelete={async () => {
-                    await fetchUserRatings(profile?.user_id || 0);
-                  }}
-                />
-              </div>
-            </>
-          ) : (
-            <p className="text-gray-400">You haven't rated any movies yet.</p>
-          )}
+            {userRatings.length > 0 ? (
+              <MovieList 
+                movies={userRatings.map(r => ({
+                  ...r.movie,
+                  voteAverage: r.rating
+                }))}
+                showDelete={true}
+                onRatingDelete={async () => {
+                  await fetchUserRatings(profile?.user_id || 0);
+                }}
+              />
+            ) : (
+              <p className="text-center text-gray-400 py-8">
+                You haven't rated any movies yet. Start exploring and rating movies!
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>
