@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Movie, MovieDetails } from '@types/movie';
 import MovieList from '../../components/MovieList';
+import RatingComponent from '../../components/RatingComponent';
 
 export default function MovieDetailsPage({ params }: { params: { id: string } }) {
   const [movie, setMovie] = useState<MovieDetails | null>(null);
@@ -162,7 +163,9 @@ export default function MovieDetailsPage({ params }: { params: { id: string } })
 
           {/* Details */}
           <div className="flex-grow space-y-4">
-            <h1 className="text-3xl font-bold text-gray-100">{movie.title}</h1>
+            <h1 className="text-3xl font-bold text-gray-100">
+              {movie.title.replace(/\s*\(\d{4}\)$/, '')}
+            </h1>
             
             <div className="flex items-center gap-4 text-sm text-gray-400">
               <span>{movie.releaseDate}</span>
@@ -184,16 +187,32 @@ export default function MovieDetailsPage({ params }: { params: { id: string } })
               </div>
             )}
 
-            {movie.supabaseRatingAverage !== null && (
-              <div className="flex items-center gap-2">
-                <span className="text-2xl font-bold text-primary">
-                  {movie.supabaseRatingAverage.toFixed(1)}
-                </span>
-                <span className="text-gray-400">
-                  ({movie.totalRatings} {movie.totalRatings === 1 ? 'rating' : 'ratings'})
-                </span>
+            <div className="flex items-center gap-8">
+              <div className="flex flex-col gap-1">
+                <span className="text-sm text-gray-400">My Rating</span>
+                <RatingComponent 
+                  movieId={movie.id}
+                  onRatingSubmit={async () => {
+                    await fetchMovieDetails();
+                  }}
+                  onRatingDelete={async () => {
+                    await fetchMovieDetails();
+                  }}
+                  showDelete={false}
+                />
               </div>
-            )}
+              {movie.supabaseRatingAverage !== null && (
+                <div className="text-right">
+                  <div className="text-sm text-gray-400">Average Rating</div>
+                  <div className="text-xl font-bold text-primary">
+                    {movie.supabaseRatingAverage.toFixed(1)}
+                    <span className="text-sm text-gray-400 ml-1">
+                      ({movie.totalRatings} {movie.totalRatings === 1 ? 'rating' : 'ratings'})
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {movie.overview && (
               <div className="space-y-2">

@@ -2,6 +2,8 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useRouter } from 'next/navigation'
+import { Movie } from '@types/movie'
+import MovieList from '../components/MovieList'
 
 interface UserProfile {
   user_id: number;
@@ -12,11 +14,17 @@ interface UserProfile {
   last_login: string | null;
 }
 
+interface UserRating {
+  movie: Movie;
+  rating: number;
+}
+
 export default function Profile() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [username, setUsername] = useState('')
+  const [userRatings, setUserRatings] = useState<UserRating[]>([])
 
   useEffect(() => {
     checkUser()
@@ -25,18 +33,24 @@ export default function Profile() {
   async function checkUser() {
     try {
       const { data: { user } } = await supabase.auth.getUser()
+      console.log('Auth user:', user);
+
       if (user) {
         const { data: userProfile, error } = await supabase
           .from('users')
           .select('*')
-          .eq('user_id', parseInt(user.id))
+          .eq('email', user.email)
           .single()
+
+        console.log('User profile:', userProfile);
 
         if (error) {
           console.error('Error fetching user profile:', error)
         } else {
           setProfile(userProfile)
           setUsername(userProfile.username || '')
+          console.log('Fetching ratings for user:', userProfile.user_id);
+          fetchUserRatings(userProfile.user_id)
         }
       } else {
         router.push('/login')
@@ -45,6 +59,66 @@ export default function Profile() {
       console.error('Error loading user:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function fetchUserRatings(userId: number) {
+    try {
+      console.log('Fetching ratings for userId:', userId);
+
+      // First get the ratings with movie IDs
+      const { data: ratings, error: ratingsError } = await supabase
+        .from('ratings')
+        .select('*')
+        .eq('user_id', userId);
+
+      if (ratingsError) {
+        console.error('Error fetching ratings:', ratingsError);
+        return;
+      }
+
+      if (!ratings || ratings.length === 0) {
+        console.log('No ratings found for user');
+        setUserRatings([]);
+        return;
+      }
+
+      // Then get the movies details
+      const movieIds = ratings.map(r => r.movie_id);
+      const { data: movies, error: moviesError } = await supabase
+        .from('movies')
+        .select('*')
+        .in('movie_id', movieIds);
+
+      if (moviesError) {
+        console.error('Error fetching movies:', moviesError);
+        return;
+      }
+
+      // Combine ratings with movie details
+      const transformedRatings: UserRating[] = ratings.map(rating => {
+        const movie = movies?.find(m => m.movie_id === rating.movie_id);
+        return {
+          rating: rating.rating,
+          movie: {
+            id: movie?.movie_id.toString() || '',
+            title: movie?.title || '',
+            overview: movie?.overview || '',
+            posterPath: movie?.poster_path || '',
+            releaseDate: movie?.year?.toString() || '',
+            voteAverage: rating.rating,
+            genres: movie?.genres || '',
+            supabaseRatingAverage: rating.rating,
+            totalRatings: 1
+          }
+        };
+      });
+
+      console.log('Transformed ratings:', transformedRatings);
+      setUserRatings(transformedRatings);
+
+    } catch (error) {
+      console.error('Error in fetchUserRatings:', error);
     }
   }
 
@@ -80,7 +154,8 @@ export default function Profile() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <div className="flex-grow max-w-2xl mx-auto">
+      <div className="flex-grow max-w-4xl mx-auto w-full space-y-8">
+        {/* Profile Card */}
         <div className="card space-y-6">
           <h1 className="text-2xl font-bold text-gray-100">Your Profile</h1>
 
@@ -142,6 +217,36 @@ export default function Profile() {
               Sign Out
             </button>
           </div>
+        </div>
+
+        {/* Ratings Card */}
+        <div className="card space-y-6">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold text-gray-100">Your Ratings</h2>
+            <span className="text-gray-400">
+              {userRatings.length} {userRatings.length === 1 ? 'movie' : 'movies'} rated
+            </span>
+          </div>
+
+          {userRatings.length > 0 ? (
+            <>
+              <div className="space-y-4">
+                <MovieList 
+                  movies={userRatings.map(r => ({
+                    ...r.movie,
+                    supabaseRatingAverage: r.rating
+                  }))}
+                  showDelete={true}
+                  onRatingDelete={async () => {
+                    // Refresh ratings after deletion
+                    await fetchUserRatings(profile?.user_id || 0);
+                  }}
+                />
+              </div>
+            </>
+          ) : (
+            <p className="text-gray-400">You haven't rated any movies yet.</p>
+          )}
         </div>
       </div>
     </div>

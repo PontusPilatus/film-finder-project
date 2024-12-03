@@ -14,12 +14,6 @@ interface Filters {
 
 type SortOption = 'title' | 'rating_desc' | 'rating_asc' | 'most_rated';
 
-interface MovieRating {
-  avg: number;
-  count: number;
-  sum: number;
-}
-
 export default function Movies() {
   const [movies, setMovies] = useState<Movie[]>([])
   const [loading, setLoading] = useState(true)
@@ -249,7 +243,7 @@ export default function Movies() {
         </div>
       </div>
       
-      {/* Movie List and Pagination (unchanged) */}
+      {/* Movie List and Pagination */}
       <div className="space-y-4">
         {loading ? (
           <div className="text-center text-gray-400">Loading movies...</div>
