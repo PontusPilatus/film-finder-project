@@ -150,97 +150,99 @@ export default function MovieDetailsPage({ params }: { params: { id: string } })
   }
 
   return (
-    <div className="space-y-8">
-      {/* Movie Details Section */}
-      <div className="card">
-        <div className="flex flex-col md:flex-row gap-8">
-          {/* Poster */}
-          <div className="w-full md:w-1/3 lg:w-1/4">
-            {movie.posterPath ? (
-              <img
-                src={`https://image.tmdb.org/t/p/w500${movie.posterPath}`}
-                alt={movie.title}
-                className="w-full rounded-lg shadow-lg"
-              />
-            ) : (
-              <div className="w-full aspect-[2/3] bg-gray-800 rounded-lg flex items-center justify-center">
-                <span className="text-gray-500">No image available</span>
-              </div>
-            )}
-          </div>
-
-          {/* Details */}
-          <div className="flex-grow space-y-4">
-            <h1 className="text-3xl font-bold text-gray-100">
-              {movie.title.replace(/\s*\(\d{4}\)$/, '')}
-            </h1>
-            
-            <div className="flex items-center gap-4 text-sm text-gray-400">
-              <span>{movie.releaseDate}</span>
-              {movie.runtime > 0 && (
-                <span>{movie.runtime} minutes</span>
-              )}
-            </div>
-
-            {movie.genres.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {movie.genres.map(genre => (
-                  <span
-                    key={genre}
-                    className="px-3 py-1 bg-blue-900/50 text-blue-200 rounded-full text-sm"
-                  >
-                    {genre}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            <div className="flex items-center gap-8">
-              <div className="flex flex-col gap-1">
-                <span className="text-sm text-gray-400">My Rating</span>
-                <RatingComponent 
-                  movieId={movie.id}
-                  onRatingSubmit={async () => {
-                    await fetchMovieDetails();
-                  }}
-                  onRatingDelete={async () => {
-                    await fetchMovieDetails();
-                  }}
-                  showDelete={false}
+    <div className="max-w-5xl mx-auto px-4 sm:px-6">
+      <div className="space-y-6">
+        {/* Movie Details Section */}
+        <div className="bg-secondary-color rounded-lg p-4">
+          <div className="flex flex-col md:flex-row gap-6">
+            {/* Poster */}
+            <div className="w-full md:w-1/4">
+              {movie.posterPath ? (
+                <img
+                  src={`https://image.tmdb.org/t/p/w500${movie.posterPath}`}
+                  alt={movie.title}
+                  className="w-full rounded-lg"
                 />
-              </div>
-              {movie.supabaseRatingAverage !== null && (
-                <div className="text-right">
-                  <div className="text-sm text-gray-400">Average Rating</div>
-                  <div className="text-xl font-bold text-primary">
-                    {movie.supabaseRatingAverage.toFixed(1)}
-                    <span className="text-sm text-gray-400 ml-1">
-                      ({movie.totalRatings} {movie.totalRatings === 1 ? 'rating' : 'ratings'})
-                    </span>
-                  </div>
+              ) : (
+                <div className="w-full aspect-[2/3] bg-gray-800 rounded-lg flex items-center justify-center">
+                  <span className="text-gray-500">No image available</span>
                 </div>
               )}
             </div>
 
-            {movie.overview && (
-              <div className="space-y-2">
-                <h2 className="text-xl font-semibold text-gray-100">Overview</h2>
-                <p className="text-gray-300 leading-relaxed">
-                  {movie.overview}
-                </p>
+            {/* Details */}
+            <div className="flex-grow space-y-3">
+              <h1 className="text-2xl font-bold text-gray-100">
+                {movie.title.replace(/\s*\(\d{4}\)$/, '')}
+              </h1>
+              
+              <div className="flex items-center gap-3 text-sm text-gray-400">
+                <span>{movie.releaseDate}</span>
+                {movie.runtime > 0 && (
+                  <span>• {movie.runtime} min</span>
+                )}
               </div>
-            )}
+
+              {movie.genres.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {movie.genres.map(genre => (
+                    <span
+                      key={genre}
+                      className="px-2 py-0.5 bg-blue-900/50 text-blue-200 rounded-full text-xs"
+                    >
+                      {genre}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex items-center gap-6">
+                <div>
+                  <span className="text-xs text-gray-400 block mb-1">My Rating</span>
+                  <RatingComponent 
+                    movieId={movie.id}
+                    onRatingSubmit={async () => {
+                      await fetchMovieDetails();
+                    }}
+                    onRatingDelete={async () => {
+                      await fetchMovieDetails();
+                    }}
+                    showDelete={false}
+                  />
+                </div>
+                {movie.supabaseRatingAverage !== null && (
+                  <div>
+                    <div className="text-xs text-gray-400">Average Rating</div>
+                    <div className="text-lg font-bold text-primary">
+                      {movie.supabaseRatingAverage.toFixed(1)}
+                      <span className="text-xs text-gray-400 ml-1">
+                        ({movie.totalRatings})
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {movie.overview && (
+                <div className="space-y-1">
+                  <h2 className="text-sm font-semibold text-gray-400">Overview</h2>
+                  <p className="text-gray-300 text-sm leading-relaxed">
+                    {movie.overview}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Related Movies Section */}
-      {relatedMovies.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="text-2xl font-bold text-gray-100">Related Movies</h2>
-          <MovieList movies={relatedMovies} />
-        </div>
-      )}
+        {/* Related Movies Section */}
+        {relatedMovies.length > 0 && (
+          <div className="space-y-3">
+            <h2 className="text-xl font-bold text-gray-100">Related Movies</h2>
+            <MovieList movies={relatedMovies} />
+          </div>
+        )}
+      </div>
     </div>
   );
 } 

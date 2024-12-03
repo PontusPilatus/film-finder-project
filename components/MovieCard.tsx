@@ -1,5 +1,5 @@
 import React from 'react';
-import { Movie } from '@types/movie';
+import { Movie } from '../types/movie';
 import Link from 'next/link';
 import Image from 'next/image';
 
