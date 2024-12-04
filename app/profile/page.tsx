@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useRouter } from 'next/navigation'
 import type { Movie } from '../../types/movie'
 import MovieList from '../components/MovieList'
-import { FiUser, FiMail, FiCalendar, FiClock, FiEdit2, FiLogOut, FiBookmark } from 'react-icons/fi'
+import { FiUser, FiMail, FiCalendar, FiClock, FiEdit2, FiLogOut, FiBookmark, FiLock } from 'react-icons/fi'
 import MovieRecommendations from '../components/MovieRecommendations'
 
 interface UserProfile {
@@ -32,6 +32,8 @@ export default function Profile() {
   const [username, setUsername] = useState('')
   const [userRatings, setUserRatings] = useState<UserRating[]>([])
   const [watchlistItems, setWatchlistItems] = useState<WatchlistItem[]>([])
+  const [newPassword, setNewPassword] = useState('')
+  const [showPasswordChange, setShowPasswordChange] = useState(false)
 
   useEffect(() => {
     checkUser()
@@ -241,6 +243,23 @@ export default function Profile() {
     }
   }
 
+  async function handlePasswordChange() {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) throw error;
+      
+      alert('Password updated successfully!');
+      setNewPassword('');
+      setShowPasswordChange(false);
+    } catch (error) {
+      console.error('Error updating password:', error);
+      alert('Failed to update password. Please try again.');
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-[50vh] flex items-center justify-center">
@@ -300,6 +319,49 @@ export default function Profile() {
                       Update
                     </button>
                   </div>
+                </div>
+
+                {/* Password Change Section */}
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-300">
+                    <FiLock className="w-4 h-4" />
+                    Password
+                  </label>
+                  {showPasswordChange ? (
+                    <div className="flex gap-4">
+                      <input
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="input-field flex-grow"
+                        placeholder="Enter new password"
+                        minLength={6}
+                      />
+                      <button
+                        onClick={handlePasswordChange}
+                        className="btn-primary whitespace-nowrap"
+                      >
+                        Update Password
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowPasswordChange(false);
+                          setNewPassword('');
+                        }}
+                        className="btn-secondary whitespace-nowrap"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setShowPasswordChange(true)}
+                      className="text-blue-400 hover:text-blue-300 transition-colors text-sm flex items-center gap-2"
+                    >
+                      <FiEdit2 className="w-4 h-4" />
+                      Change Password
+                    </button>
+                  )}
                 </div>
 
                 {/* Email */}

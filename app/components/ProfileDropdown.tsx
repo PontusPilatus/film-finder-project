@@ -55,41 +55,49 @@ export default function ProfileDropdown() {
 
       {isOpen && (
         <div 
-          className="absolute right-0 mt-2 w-48 rounded-lg bg-[#0f172a] border border-white/10 shadow-lg z-[100]"
+          className="absolute right-0 mt-2 w-48 rounded-lg bg-[#0f172a] border border-blue-500/20 shadow-lg z-[100]
+                     backdrop-blur-sm overflow-hidden
+                     animate-in slide-in-from-top-2 duration-200"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="py-2">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 pointer-events-none"></div>
+          <div className="relative py-1">
             <Link
               href="/profile"
-              className="block px-4 py-2 text-gray-300 hover:bg-blue-500/10 hover:text-white transition-colors"
+              className="block px-4 py-2.5 text-gray-300 hover:bg-blue-500/10 hover:text-white transition-all
+                         border-l-2 border-transparent hover:border-blue-500 hover:pl-5"
               onClick={handleLinkClick}
             >
               Profile
             </Link>
             <Link
               href="/watchlist"
-              className="block px-4 py-2 text-gray-300 hover:bg-blue-500/10 hover:text-white transition-colors"
+              className="block px-4 py-2.5 text-gray-300 hover:bg-blue-500/10 hover:text-white transition-all
+                         border-l-2 border-transparent hover:border-blue-500 hover:pl-5"
               onClick={handleLinkClick}
             >
               Watchlist
             </Link>
             <Link
               href="/ratings"
-              className="block px-4 py-2 text-gray-300 hover:bg-blue-500/10 hover:text-white transition-colors"
+              className="block px-4 py-2.5 text-gray-300 hover:bg-blue-500/10 hover:text-white transition-all
+                         border-l-2 border-transparent hover:border-blue-500 hover:pl-5"
               onClick={handleLinkClick}
             >
               Ratings
             </Link>
             <Link
               href="/recommendations"
-              className="block px-4 py-2 text-gray-300 hover:bg-blue-500/10 hover:text-white transition-colors"
+              className="block px-4 py-2.5 text-gray-300 hover:bg-blue-500/10 hover:text-white transition-all
+                         border-l-2 border-transparent hover:border-blue-500 hover:pl-5"
               onClick={handleLinkClick}
             >
               Recommendations
             </Link>
             <button
               onClick={handleSignOut}
-              className="w-full text-left px-4 py-2 text-gray-300 hover:bg-blue-500/10 hover:text-white transition-colors"
+              className="w-full text-left px-4 py-2.5 text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all
+                        border-l-2 border-transparent hover:border-red-500 hover:pl-5"
             >
               Sign Out
             </button>

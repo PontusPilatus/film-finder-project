@@ -24,7 +24,7 @@ export default function Login() {
       })
 
       if (error) throw error
-      router.push('/movies')
+      router.push('/')
       
     } catch (error) {
       setError(error instanceof Error ? error.message : 'An error occurred')
