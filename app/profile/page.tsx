@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import type { Movie } from '../../types/movie'
 import MovieList from '../components/MovieList'
 import { FiUser, FiMail, FiCalendar, FiClock, FiEdit2, FiLogOut, FiBookmark } from 'react-icons/fi'
+import MovieRecommendations from '../components/MovieRecommendations'
 
 interface UserProfile {
   user_id: number;
@@ -348,82 +349,6 @@ export default function Profile() {
               </>
             ) : (
               <p className="text-center text-gray-400">No profile data found</p>
-            )}
-          </div>
-        </div>
-
-        {/* Ratings Section */}
-        <div className="space-y-8">
-          <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">
-            Your Ratings
-          </h2>
-          
-          <div className="card backdrop-blur-lg">
-            <div className="flex justify-between items-center mb-6">
-              <p className="text-gray-300">
-                You have rated {userRatings.length} {userRatings.length === 1 ? 'movie' : 'movies'}
-              </p>
-            </div>
-
-            {userRatings.length > 0 ? (
-              <MovieList 
-                movies={userRatings.map(r => ({
-                  ...r.movie,
-                  voteAverage: r.rating
-                }))}
-                showDelete={true}
-                onRatingDelete={async () => {
-                  await fetchUserRatings(profile?.user_id || 0);
-                }}
-              />
-            ) : (
-              <p className="text-center text-gray-400 py-8">
-                You haven't rated any movies yet. Start exploring and rating movies!
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Watchlist Section */}
-        <div className="space-y-8">
-          <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">
-            <div className="flex items-center gap-3">
-              <FiBookmark className="w-8 h-8" />
-              Your Watchlist
-            </div>
-          </h2>
-          
-          <div className="card backdrop-blur-lg">
-            <div className="flex justify-between items-center mb-6">
-              <p className="text-gray-300">
-                You have {watchlistItems.length} {watchlistItems.length === 1 ? 'movie' : 'movies'} in your watchlist
-              </p>
-            </div>
-
-            {watchlistItems.length > 0 ? (
-              <MovieList 
-                movies={watchlistItems.map(item => item.movie)}
-                showDelete={true}
-                onRatingDelete={async (movieId) => {
-                  try {
-                    const { error } = await supabase
-                      .from('watchlist')
-                      .delete()
-                      .eq('movie_id', movieId)
-                      .eq('user_id', profile?.user_id);
-
-                    if (error) throw error;
-                    await fetchWatchlist(profile?.user_id || 0);
-                  } catch (error) {
-                    console.error('Error removing from watchlist:', error);
-                    alert('Failed to remove from watchlist. Please try again.');
-                  }
-                }}
-              />
-            ) : (
-              <p className="text-center text-gray-400 py-8">
-                Your watchlist is empty. Start adding movies you want to watch!
-              </p>
             )}
           </div>
         </div>

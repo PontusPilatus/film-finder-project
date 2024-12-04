@@ -92,6 +92,11 @@
   .fade-in-up {
     @apply animate-[fadeInUp_0.5s_ease-out_forwards];
   }
+
+  /* Add these styles to your existing globals.css */
+  .dropdown-item {
+    @apply flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-blue-500/10 transition-colors w-full;
+  }
 }
 
 /* Custom Animations */
