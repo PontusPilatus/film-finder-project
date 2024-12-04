@@ -159,26 +159,30 @@ export default function Movies() {
   const totalPages = Math.ceil(totalCount / MOVIES_PER_PAGE)
 
   return (
-    <div className="min-h-screen space-y-12 pb-16">
+    <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative min-h-[40vh] sm:min-h-[50vh] flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 hero-gradient opacity-30"></div>
+      <section className="relative pb-12 overflow-hidden">
+        <div className="absolute inset-0 hero-gradient opacity-40"></div>
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-background-dark/5 to-transparent"></div>
         
-        <div className="relative container-wrapper text-center space-y-6">
-          <h1 className="hero-text">
-            Discover Movies
-          </h1>
-          <p className="hero-subtitle">
-            Find your next favorite film from our curated collection
-          </p>
+        <div className="relative container-wrapper">
+          <div className="grid lg:grid-cols-1 gap-8 lg:gap-12 items-center pt-8 sm:pt-12 md:pt-16">
+            <div className="space-y-6 text-center fade-in-up">
+              <div className="space-y-3">
+                <h1 className="text-4xl lg:text-5xl font-bold text-gray-100">
+                  Discover Movies
+                </h1>
+                <p className="text-lg text-gray-300">
+                  Find your next favorite film from our curated collection
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
-
-        <div className="absolute -bottom-48 left-0 right-0 h-96 bg-gradient-to-t from-[#0a1929] to-transparent pointer-events-none"></div>
       </section>
 
       {/* Search and Filters Card */}
-      <section className="container-wrapper">
+      <section className="container-wrapper py-16">
         <div className="card bg-[var(--background-card)] backdrop-blur-md border-white/10">
           <div className="space-y-6">
             {/* Search */}
@@ -265,7 +269,7 @@ export default function Movies() {
       </section>
 
       {/* Movie List Section */}
-      <section className="container-wrapper">
+      <section className="container-wrapper mb-16">
         {loading ? (
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-400"></div>

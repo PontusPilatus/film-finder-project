@@ -2,24 +2,30 @@ import { FiTarget, FiSearch, FiStar, FiMail, FiLinkedin } from 'react-icons/fi';
 
 export default function About() {
   return (
-    <div className="min-h-screen space-y-8 sm:space-y-12 pb-8 sm:pb-12 md:pb-16">
+    <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative min-h-[40vh] sm:min-h-[50vh] flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 hero-gradient opacity-30"></div>
+      <section className="relative pb-12 overflow-hidden">
+        <div className="absolute inset-0 hero-gradient opacity-40"></div>
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-background-dark/5 to-transparent"></div>
         
-        <div className="relative container-wrapper text-center space-y-6">
-          <h1 className="hero-text">About Film Finder</h1>
-          <p className="hero-subtitle">
-            Your trusted companion in discovering the world of cinema
-          </p>
+        <div className="relative container-wrapper">
+          <div className="grid lg:grid-cols-1 gap-8 lg:gap-12 items-center pt-8 sm:pt-12 md:pt-16">
+            <div className="space-y-6 text-center fade-in-up">
+              <div className="space-y-3">
+                <h1 className="text-4xl lg:text-5xl font-bold text-gray-100">
+                  About Film Finder
+                </h1>
+                <p className="text-lg text-gray-300">
+                  Your trusted companion in discovering the world of cinema
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
-
-        <div className="absolute -bottom-48 left-0 right-0 h-96 bg-gradient-to-t from-[#0a1929] to-transparent pointer-events-none"></div>
       </section>
 
       {/* Mission Section */}
-      <section className="container-wrapper max-w-4xl">
+      <section className="container-wrapper py-16">
         <div className="card backdrop-blur-lg">
           <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600 mb-6">
             Our Mission
@@ -33,7 +39,7 @@ export default function About() {
       </section>
 
       {/* Features Section */}
-      <section className="container-wrapper max-w-6xl">
+      <section className="container-wrapper py-16 max-w-6xl">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="card group cursor-pointer">
             <div className="relative space-y-4">
@@ -80,7 +86,7 @@ export default function About() {
       </section>
 
       {/* Developer Section */}
-      <section className="container-wrapper max-w-4xl">
+      <section className="container-wrapper py-16 max-w-4xl">
         <div className="card backdrop-blur-lg">
           <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600 mb-8">
             Meet the Developer

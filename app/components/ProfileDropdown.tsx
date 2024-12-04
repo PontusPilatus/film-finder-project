@@ -3,15 +3,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FiUser, FiStar, FiBookmark, FiThumbsUp, FiLogOut } from 'react-icons/fi';
+import { FiChevronDown } from 'react-icons/fi';
 import { supabase } from '../lib/supabase';
 
 export default function ProfileDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-
-  console.log('ProfileDropdown rendered, isOpen:', isOpen);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -20,84 +18,80 @@ export default function ProfileDropdown() {
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
-  const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    console.log('Profile button clicked');
-    setIsOpen(!isOpen);
-  };
-
-  const handleSignOut = async () => {
+  const handleSignOut = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     try {
       await supabase.auth.signOut();
+      setIsOpen(false);
       router.push('/');
     } catch (error) {
       console.error('Error signing out:', error);
     }
   };
 
+  const handleLinkClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsOpen(false);
+  };
+
+  const toggleDropdown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsOpen(!isOpen);
+  };
+
   return (
     <div className="relative" ref={dropdownRef}>
       <button
-        onClick={handleClick}
-        type="button"
-        className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-blue-500/10 transition-colors"
+        onClick={toggleDropdown}
+        className="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/5 transition-all"
       >
-        <FiUser className="w-5 h-5" />
-        <span>Profile</span>
+        <span>Account</span>
+        <FiChevronDown className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
         <div 
-          className="absolute right-0 mt-2 w-48 rounded-lg bg-gray-900 border border-blue-500/10 shadow-lg overflow-hidden z-50"
-          style={{ minWidth: '12rem' }}
+          className="absolute right-0 mt-2 w-48 rounded-lg bg-[#0f172a] border border-white/10 shadow-lg z-[100]"
+          onClick={(e) => e.stopPropagation()}
         >
-          <div className="py-1">
-            <Link 
-              href="/profile" 
-              className="dropdown-item"
-              onClick={() => setIsOpen(false)}
+          <div className="py-2">
+            <Link
+              href="/profile"
+              className="block px-4 py-2 text-gray-300 hover:bg-blue-500/10 hover:text-white transition-colors"
+              onClick={handleLinkClick}
             >
-              <FiUser className="w-4 h-4" />
-              <span>Profile Settings</span>
+              Profile
             </Link>
-            
-            <Link 
-              href="/ratings" 
-              className="dropdown-item"
-              onClick={() => setIsOpen(false)}
+            <Link
+              href="/watchlist"
+              className="block px-4 py-2 text-gray-300 hover:bg-blue-500/10 hover:text-white transition-colors"
+              onClick={handleLinkClick}
             >
-              <FiStar className="w-4 h-4" />
-              <span>My Ratings</span>
+              Watchlist
             </Link>
-            
-            <Link 
-              href="/watchlist" 
-              className="dropdown-item"
-              onClick={() => setIsOpen(false)}
+            <Link
+              href="/ratings"
+              className="block px-4 py-2 text-gray-300 hover:bg-blue-500/10 hover:text-white transition-colors"
+              onClick={handleLinkClick}
             >
-              <FiBookmark className="w-4 h-4" />
-              <span>Watchlist</span>
+              Ratings
             </Link>
-            
-            <Link 
-              href="/recommendations" 
-              className="dropdown-item"
-              onClick={() => setIsOpen(false)}
+            <Link
+              href="/recommendations"
+              className="block px-4 py-2 text-gray-300 hover:bg-blue-500/10 hover:text-white transition-colors"
+              onClick={handleLinkClick}
             >
-              <FiThumbsUp className="w-4 h-4" />
-              <span>Recommendations</span>
+              Recommendations
             </Link>
-            
             <button
               onClick={handleSignOut}
-              className="dropdown-item text-red-400 hover:bg-red-500/10 w-full text-left"
+              className="w-full text-left px-4 py-2 text-gray-300 hover:bg-blue-500/10 hover:text-white transition-colors"
             >
-              <FiLogOut className="w-4 h-4" />
-              <span>Sign Out</span>
+              Sign Out
             </button>
           </div>
         </div>
