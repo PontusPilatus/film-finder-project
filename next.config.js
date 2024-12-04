@@ -16,14 +16,6 @@ const nextConfig = {
       '@types': path.resolve(__dirname, './types'),
     };
     return config;
-  },
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: 'http://localhost:8000/api/:path*'
-      }
-    ]
   }
 };
 
