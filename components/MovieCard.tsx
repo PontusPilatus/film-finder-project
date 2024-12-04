@@ -1,13 +1,31 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Movie } from '../types/movie';
 import Link from 'next/link';
 import Image from 'next/image';
+import { supabase } from '../app/lib/supabase';
 
 interface MovieCardProps {
   movie: Movie;
 }
 
 const MovieCard: React.FC<MovieCardProps> = ({ movie }) => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session);
+    };
+
+    checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   return (
     <Link href={`/movies/${movie.id}`} className="movie-card block">
       <div className="relative h-[400px] rounded-lg overflow-hidden bg-secondary-color">
@@ -34,13 +52,15 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie }) => {
             </p>
             <div className="movie-meta flex items-center gap-4 mt-2 text-sm">
               <span>{new Date(movie.releaseDate).getFullYear()}</span>
-              <span className="flex items-center">
-                <span className="text-yellow-400 mr-1">★</span>
-                {movie.supabaseRatingAverage ? movie.supabaseRatingAverage.toFixed(1) : 'No ratings'}
-              </span>
-              <span className="text-sm text-gray-400">
-                ({movie.totalRatings} {movie.totalRatings === 1 ? 'rating' : 'ratings'})
-              </span>
+              {movie.supabaseRatingAverage && (
+                <span className="flex items-center">
+                  <span className="text-yellow-400 mr-1">★</span>
+                  {movie.supabaseRatingAverage.toFixed(1)}
+                  <span className="text-xs text-gray-400 ml-1">
+                    ({movie.totalRatings})
+                  </span>
+                </span>
+              )}
             </div>
           </div>
         </div>

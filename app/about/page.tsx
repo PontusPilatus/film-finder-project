@@ -2,9 +2,9 @@ import { FiTarget, FiSearch, FiStar, FiMail, FiLinkedin } from 'react-icons/fi';
 
 export default function About() {
   return (
-    <div className="min-h-screen space-y-24">
+    <div className="min-h-screen space-y-8 sm:space-y-12 pb-8 sm:pb-12 md:pb-16">
       {/* Hero Section */}
-      <section className="relative min-h-[50vh] flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-[40vh] sm:min-h-[50vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 hero-gradient opacity-30"></div>
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-background-dark/5 to-transparent"></div>
         

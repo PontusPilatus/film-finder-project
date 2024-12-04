@@ -1,11 +1,28 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { FiMenu, FiX, FiUser } from 'react-icons/fi';
+import { supabase } from '../app/lib/supabase';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session);
+    };
+
+    checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <header className="header">
@@ -33,11 +50,11 @@ const Header: React.FC = () => {
         {/* Right Section */}
         <div className="flex items-center gap-2">
           <Link 
-            href="/profile" 
+            href={isLoggedIn ? "/profile" : "/login"} 
             className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-white/5 text-gray-300 hover:text-white transition-all"
           >
             <FiUser className="w-4 h-4" />
-            <span className="hidden sm:inline">Profile</span>
+            <span className="hidden sm:inline">{isLoggedIn ? "Profile" : "Sign in"}</span>
           </Link>
           
           {/* Mobile Menu Button */}

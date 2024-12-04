@@ -9,6 +9,22 @@ export default function MovieDetailsPage({ params }: { params: { id: string } })
   const [movie, setMovie] = useState<MovieDetails | null>(null);
   const [relatedMovies, setRelatedMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session);
+    };
+
+    checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     fetchMovieDetails();
@@ -197,19 +213,21 @@ export default function MovieDetailsPage({ params }: { params: { id: string } })
               )}
 
               <div className="flex items-center gap-6">
-                <div>
-                  <span className="text-xs text-gray-400 block mb-1">My Rating</span>
-                  <RatingComponent 
-                    movieId={movie.id}
-                    onRatingSubmit={async () => {
-                      await fetchMovieDetails();
-                    }}
-                    onRatingDelete={async () => {
-                      await fetchMovieDetails();
-                    }}
-                    showDelete={false}
-                  />
-                </div>
+                {isLoggedIn && (
+                  <div>
+                    <span className="text-sm text-gray-400">My Rating</span>
+                    <RatingComponent 
+                      movieId={movie.id}
+                      onRatingSubmit={async () => {
+                        await fetchMovieDetails();
+                      }}
+                      onRatingDelete={async () => {
+                        await fetchMovieDetails();
+                      }}
+                      showDelete={false}
+                    />
+                  </div>
+                )}
                 {movie.supabaseRatingAverage !== null && (
                   <div>
                     <div className="text-xs text-gray-400">Average Rating</div>

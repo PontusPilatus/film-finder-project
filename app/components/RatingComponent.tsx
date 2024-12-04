@@ -10,7 +10,13 @@ interface RatingComponentProps {
   showDelete?: boolean;
 }
 
-export default function RatingComponent({ movieId, initialRating, onRatingSubmit, onRatingDelete, showDelete = false }: RatingComponentProps) {
+export default function RatingComponent({ 
+  movieId, 
+  initialRating, 
+  onRatingSubmit, 
+  onRatingDelete, 
+  showDelete = false
+}: RatingComponentProps) {
   const [rating, setRating] = useState<number | null>(null);
   const [hoveredRating, setHoveredRating] = useState<number | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -35,8 +41,6 @@ export default function RatingComponent({ movieId, initialRating, onRatingSubmit
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      console.log('Auth user:', user);
-
       const { data, error } = await supabase
         .from('users')
         .select('user_id')
@@ -49,10 +53,7 @@ export default function RatingComponent({ movieId, initialRating, onRatingSubmit
       }
       
       if (data) {
-        console.log('Found user_id:', data.user_id);
         setUserId(data.user_id);
-      } else {
-        console.log('No user found in users table');
       }
     }
   }
@@ -89,12 +90,6 @@ export default function RatingComponent({ movieId, initialRating, onRatingSubmit
         alert('Please log in to rate movies');
         return;
       }
-
-      console.log('Attempting to submit rating:', {
-        movie_id: parseInt(movieId),
-        user_id: userId,
-        rating: newRating
-      });
 
       const { error } = await supabase
         .from('ratings')

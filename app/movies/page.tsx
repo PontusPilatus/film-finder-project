@@ -161,99 +161,103 @@ export default function Movies() {
   return (
     <div className="min-h-screen space-y-12">
       {/* Hero Section */}
-      <section className="relative">
+      <section className="relative min-h-[40vh] sm:min-h-[50vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 hero-gradient opacity-30"></div>
-        <div className="relative container-wrapper pb-12">
-          <div className="text-center space-y-4 pt-8">
-            <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">
-              Discover Movies
-            </h1>
-            <p className="text-xl text-gray-300">
-              Find your next favorite film from our curated collection
-            </p>
-          </div>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-background-dark/5 to-transparent"></div>
+        
+        <div className="relative container-wrapper text-center space-y-6">
+          <h1 className="hero-text">
+            Discover Movies
+          </h1>
+          <p className="hero-subtitle">
+            Find your next favorite film from our curated collection
+          </p>
+        </div>
 
-          {/* Search and Filters Card */}
-          <div className="card mt-8 bg-[var(--background-card)] backdrop-blur-md border-white/10">
-            <div className="space-y-6">
-              {/* Search */}
-              <div className="flex gap-4">
-                <div className="relative flex-grow">
-                  <input 
-                    type="text" 
-                    placeholder="Search for a movie..." 
-                    className="input-field pl-10"
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value)
-                      if (e.target.value === '') handleSearch()
-                    }}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                  />
-                  <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                </div>
-                <button 
-                  className="btn-primary"
-                  onClick={handleSearch}
-                >
-                  Search
-                </button>
+        <div className="absolute -bottom-48 left-0 right-0 h-96 bg-gradient-to-t from-[#0a1929] to-transparent pointer-events-none"></div>
+      </section>
+
+      {/* Search and Filters Card */}
+      <section className="container-wrapper">
+        <div className="card bg-[var(--background-card)] backdrop-blur-md border-white/10">
+          <div className="space-y-6">
+            {/* Search */}
+            <div className="flex gap-4">
+              <div className="relative flex-grow">
+                <input 
+                  type="text" 
+                  placeholder="Search for a movie..." 
+                  className="input-field pl-10"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value)
+                    if (e.target.value === '') handleSearch()
+                  }}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                />
+                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               </div>
+              <button 
+                className="btn-primary"
+                onClick={handleSearch}
+              >
+                Search
+              </button>
+            </div>
 
-              {/* Filters and Sorting */}
-              <div className="flex flex-wrap gap-4 items-center">
-                <select
-                  className="input-field max-w-[200px]"
-                  value={filters.year || ''}
-                  onChange={(e) => handleFilterChange('year', e.target.value)}
-                >
-                  <option value="">All Years</option>
-                  {availableYears.map(year => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
-                </select>
+            {/* Filters and Sorting */}
+            <div className="flex flex-wrap gap-4 items-center">
+              <select
+                className="input-field max-w-[200px]"
+                value={filters.year || ''}
+                onChange={(e) => handleFilterChange('year', e.target.value)}
+              >
+                <option value="">All Years</option>
+                {availableYears.map(year => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </select>
 
-                <select
-                  className="input-field max-w-[200px]"
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as SortOption)}
-                >
-                  <option value="title">Title (A-Z)</option>
-                  <option value="rating_desc">Highest Rated</option>
-                  <option value="rating_asc">Lowest Rated</option>
-                  <option value="most_rated">Most Rated</option>
-                </select>
+              <select
+                className="input-field max-w-[200px]"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as SortOption)}
+              >
+                <option value="title">Title (A-Z)</option>
+                <option value="rating_desc">Highest Rated</option>
+                <option value="rating_asc">Lowest Rated</option>
+                <option value="most_rated">Most Rated</option>
+              </select>
 
-                {/* Active Filters */}
-                <div className="flex flex-wrap gap-2">
-                  {filters.genre && (
-                    <span className="px-3 py-1.5 rounded-full bg-blue-500/10 text-blue-400 
-                                   flex items-center gap-2 text-sm">
-                      {filters.genre}
-                      <button
-                        onClick={() => handleFilterChange('genre', '')}
-                        className="hover:text-white transition-colors"
-                      >
-                        <FiX />
-                      </button>
-                    </span>
-                  )}
-
-                  {(filters.year || filters.genre) && (
+              {/* Active Filters */}
+              <div className="flex flex-wrap gap-2">
+                {filters.genre && (
+                  <span className="px-3 py-1.5 rounded-full bg-blue-500/10 text-blue-400 
+                                 flex items-center gap-2 text-sm">
+                    {filters.genre}
                     <button
-                      className="px-3 py-1.5 rounded-full bg-blue-500/10 text-blue-400 
-                               hover:bg-blue-500/20 transition-colors text-sm flex items-center gap-2"
-                      onClick={() => {
-                        setFilters({});
-                        setCurrentPage(1);
-                        setSortBy('title');
-                      }}
+                      onClick={() => handleFilterChange('genre', '')}
+                      className="hover:text-white transition-colors"
                     >
-                      <FiFilter />
-                      Clear Filters
+                      <FiX />
                     </button>
-                  )}
-                </div>
+                  </span>
+                )}
+
+                {(filters.year || filters.genre) && (
+                  <button
+                    className="px-3 py-1.5 rounded-full bg-blue-500/10 text-blue-400 
+                             hover:bg-blue-500/20 transition-colors text-sm flex items-center gap-2"
+                    onClick={() => {
+                      setFilters({});
+                      setCurrentPage(1);
+                      setSortBy('title');
+                    }}
+                  >
+                    <FiFilter />
+                    Clear Filters
+                  </button>
+                )}
               </div>
             </div>
           </div>

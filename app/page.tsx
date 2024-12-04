@@ -10,7 +10,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-background-dark/5 to-transparent"></div>
         
         <div className="relative container-wrapper">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center min-h-[70vh]">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center pt-8 sm:pt-12 md:pt-16">
             {/* Left Column - Text Content */}
             <div className="space-y-6 text-center lg:text-left fade-in-up">
               <div className="space-y-3">
