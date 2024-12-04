@@ -4,73 +4,77 @@ import { supabase } from '../lib/supabase';
 
 interface RatingComponentProps {
   movieId: string;
-  initialRating?: number;
-  onRatingSubmit?: (rating: number) => void;
-  onRatingDelete?: () => void;
   showDelete?: boolean;
+  onRatingSubmit?: () => void;
+  onRatingDelete?: (movieId: string) => void;
 }
 
 export default function RatingComponent({ 
   movieId, 
-  initialRating, 
+  showDelete = false, 
   onRatingSubmit, 
-  onRatingDelete, 
-  showDelete = false
+  onRatingDelete
 }: RatingComponentProps) {
   const [rating, setRating] = useState<number | null>(null);
   const [hoveredRating, setHoveredRating] = useState<number | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(false);
   const [userId, setUserId] = useState<number | null>(null);
+  const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
 
   useEffect(() => {
     checkAuth();
   }, []);
 
   useEffect(() => {
-    if (userId) {
+    if (userId && !hasAttemptedFetch) {
       fetchUserRating();
     }
-  }, [userId, movieId]);
+  }, [userId, movieId, hasAttemptedFetch]);
 
   async function checkAuth() {
-    const { data: { session } } = await supabase.auth.getSession();
-    setIsLoggedIn(!!session);
-    
-    if (session) {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from('users')
-        .select('user_id')
-        .eq('email', user.email)
-        .single();
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session);
       
-      if (error) {
-        console.error('Error fetching user:', error);
-        return;
+      if (session?.user) {
+        const { data, error } = await supabase
+          .from('users')
+          .select('user_id')
+          .eq('email', session.user.email)
+          .single();
+        
+        if (error) {
+          console.error('Error fetching user:', error);
+          return;
+        }
+        
+        if (data) {
+          setUserId(data.user_id);
+        }
       }
-      
-      if (data) {
-        setUserId(data.user_id);
-      }
+    } catch (error) {
+      console.error('Error checking auth:', error);
     }
   }
 
   async function fetchUserRating() {
     try {
-      if (!userId) return;
+      if (!userId || !movieId) return;
 
+      setHasAttemptedFetch(true);
       const { data, error } = await supabase
         .from('ratings')
         .select('rating')
-        .eq('movie_id', parseInt(movieId))
+        .eq('movie_id', movieId)
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
-        console.error('Error fetching rating:', error);
+        // Only log real errors, not "no rating found"
+        if (error.code !== 'PGRST116') {
+          console.error('Error fetching rating:', error);
+        }
         return;
       }
 
@@ -78,7 +82,10 @@ export default function RatingComponent({
         setRating(data.rating);
       }
     } catch (error) {
-      console.error('Error:', error);
+      // Only log unexpected errors
+      if (error instanceof Error && !error.message.includes('PGRST116')) {
+        console.error('Error:', error);
+      }
     }
   }
 
@@ -94,7 +101,7 @@ export default function RatingComponent({
       const { error } = await supabase
         .from('ratings')
         .upsert({
-          movie_id: parseInt(movieId),
+          movie_id: movieId,
           user_id: userId,
           rating: newRating
         }, {
@@ -102,46 +109,39 @@ export default function RatingComponent({
         });
 
       if (error) {
-        console.error('Rating error:', error);
         throw error;
       }
 
       setRating(newRating);
       if (onRatingSubmit) {
-        onRatingSubmit(newRating);
+        onRatingSubmit();
       }
     } catch (error) {
       console.error('Error submitting rating:', error);
-      alert(`Failed to submit rating: ${error.message}`);
+      alert('Failed to submit rating. Please try again.');
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleDeleteRating() {
+  async function handleDelete() {
     try {
       setLoading(true);
-      
-      if (!userId) {
-        alert('Please log in to manage ratings');
-        return;
-      }
-
       const { error } = await supabase
         .from('ratings')
         .delete()
-        .eq('movie_id', parseInt(movieId))
+        .eq('movie_id', movieId)
         .eq('user_id', userId);
 
       if (error) throw error;
 
       setRating(null);
       if (onRatingDelete) {
-        onRatingDelete();
+        onRatingDelete(movieId);
       }
     } catch (error) {
       console.error('Error deleting rating:', error);
-      alert(`Failed to delete rating: ${error.message}`);
+      alert('Failed to delete rating. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -181,7 +181,7 @@ export default function RatingComponent({
           <button
             onClick={(e) => {
               e.preventDefault();
-              handleDeleteRating();
+              handleDelete();
             }}
             disabled={loading}
             className="p-1 text-gray-400 hover:text-red-500 transition-colors"

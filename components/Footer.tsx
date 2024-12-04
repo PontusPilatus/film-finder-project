@@ -19,7 +19,6 @@ const Footer: React.FC = () => {
             <h3 className="text-lg font-semibold text-white">Features</h3>
             <ul className="space-y-2">
               <li><Link href="/movies" className="text-gray-400 hover:text-white transition-colors">Browse Movies</Link></li>
-              <li><Link href="/watchlist" className="text-gray-400 hover:text-white transition-colors">Watchlist</Link></li>
               <li><Link href="/recommendations" className="text-gray-400 hover:text-white transition-colors">Recommendations</Link></li>
             </ul>
           </div>

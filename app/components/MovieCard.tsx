@@ -1,41 +1,138 @@
+'use client'
 import React, { useState, useEffect } from 'react';
 import { Movie } from '../../types/movie';
 import Link from 'next/link';
-import Image from 'next/image';
 import RatingComponent from './RatingComponent';
 import { supabase } from '../lib/supabase';
+import { FiBookmark, FiCheck } from 'react-icons/fi';
 
 interface MovieCardProps {
   movie: Movie;
   onGenreClick?: (genre: string) => void;
   showDelete?: boolean;
-  onRatingDelete?: () => void;
+  onRatingDelete?: (movieId: string) => void;
 }
 
 const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, onRatingDelete }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userId, setUserId] = useState<number | null>(null);
+  const [isInWatchlist, setIsInWatchlist] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setIsLoggedIn(!!session);
+
+      if (session?.user) {
+        const { data, error } = await supabase
+          .from('users')
+          .select('user_id')
+          .eq('email', session.user.email)
+          .single();
+        
+        if (!error && data) {
+          setUserId(data.user_id);
+        }
+      }
     };
 
     checkSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setIsLoggedIn(!!session);
+      if (session?.user) {
+        const { data } = await supabase
+          .from('users')
+          .select('user_id')
+          .eq('email', session.user.email)
+          .single();
+        
+        if (data) {
+          setUserId(data.user_id);
+        }
+      } else {
+        setUserId(null);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (userId) {
+      checkWatchlistStatus();
+    }
+  }, [userId, movie.id]);
+
+  const checkWatchlistStatus = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('watchlist')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('movie_id', movie.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking watchlist status:', error);
+      }
+
+      setIsInWatchlist(!!data);
+    } catch (error) {
+      console.error('Error checking watchlist status:', error);
+    }
+  };
+
+  const handleWatchlistClick = async (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent navigation
+    if (!isLoggedIn || !userId || isLoading) return;
+
+    try {
+      setIsLoading(true);
+
+      if (isInWatchlist) {
+        const { error } = await supabase
+          .from('watchlist')
+          .delete()
+          .eq('user_id', userId)
+          .eq('movie_id', movie.id);
+
+        if (error) throw error;
+        setIsInWatchlist(false);
+      } else {
+        const { error } = await supabase
+          .from('watchlist')
+          .insert([
+            {
+              user_id: userId,
+              movie_id: parseInt(movie.id)
+            }
+          ]);
+
+        if (error) throw error;
+        setIsInWatchlist(true);
+      }
+    } catch (error) {
+      console.error('Error updating watchlist:', error);
+      alert('Failed to update watchlist. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRatingDelete = () => {
+    if (onRatingDelete) {
+      onRatingDelete(movie.id);
+    }
+  };
 
   const genres: string[] = Array.isArray(movie.genres) 
     ? movie.genres 
     : (movie.genres as string)?.split('|') || [];
 
   return (
-    <Link href={`/movies/${movie.id}`} className="movie-card block">
+    <Link href={`/movies/${movie.id}`} className="movie-card block relative">
       <div className="card hover:border-primary group transition-all duration-200">
         <div className="flex justify-between items-start">
           <div className="space-y-2 flex-grow">
@@ -72,6 +169,29 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, 
               </p>
             )}
           </div>
+
+          {/* Watchlist Button */}
+          {isLoggedIn && (
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                handleWatchlistClick(e);
+              }}
+              className={`ml-4 p-2 rounded-full transition-all duration-200 ${
+                isInWatchlist 
+                  ? 'bg-blue-500 text-white' 
+                  : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white'
+              }`}
+              disabled={isLoading}
+              title={isInWatchlist ? "Remove from watchlist" : "Add to watchlist"}
+            >
+              {isInWatchlist ? (
+                <FiCheck className="w-5 h-5" />
+              ) : (
+                <FiBookmark className="w-5 h-5" />
+              )}
+            </button>
+          )}
         </div>
         
         <div className="mt-4 flex items-center justify-between">
@@ -81,7 +201,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, 
               <RatingComponent 
                 movieId={movie.id}
                 showDelete={showDelete}
-                onRatingDelete={onRatingDelete}
+                onRatingDelete={handleRatingDelete}
               />
             </div>
           )}

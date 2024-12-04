@@ -4,27 +4,117 @@ import { supabase } from '../../lib/supabase';
 import type { Movie, MovieDetails } from '../../../types/movie';
 import MovieList from '../../components/MovieList';
 import RatingComponent from '../../components/RatingComponent';
+import { FiBookmark, FiCheck } from 'react-icons/fi';
 
 export default function MovieDetailsPage({ params }: { params: { id: string } }) {
   const [movie, setMovie] = useState<MovieDetails | null>(null);
   const [relatedMovies, setRelatedMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userId, setUserId] = useState<number | null>(null);
+  const [isInWatchlist, setIsInWatchlist] = useState(false);
+  const [isWatchlistLoading, setIsWatchlistLoading] = useState(false);
 
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setIsLoggedIn(!!session);
+
+      if (session?.user) {
+        const { data, error } = await supabase
+          .from('users')
+          .select('user_id')
+          .eq('email', session.user.email)
+          .single();
+        
+        if (!error && data) {
+          setUserId(data.user_id);
+        }
+      }
     };
 
     checkSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setIsLoggedIn(!!session);
+      if (session?.user) {
+        const { data } = await supabase
+          .from('users')
+          .select('user_id')
+          .eq('email', session.user.email)
+          .single();
+        
+        if (data) {
+          setUserId(data.user_id);
+        }
+      } else {
+        setUserId(null);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (userId) {
+      checkWatchlistStatus();
+    }
+  }, [userId, params.id]);
+
+  const checkWatchlistStatus = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('watchlist')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('movie_id', params.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking watchlist status:', error);
+      }
+
+      setIsInWatchlist(!!data);
+    } catch (error) {
+      console.error('Error checking watchlist status:', error);
+    }
+  };
+
+  const handleWatchlistClick = async () => {
+    if (!isLoggedIn || !userId || isWatchlistLoading) return;
+
+    try {
+      setIsWatchlistLoading(true);
+
+      if (isInWatchlist) {
+        const { error } = await supabase
+          .from('watchlist')
+          .delete()
+          .eq('user_id', userId)
+          .eq('movie_id', params.id);
+
+        if (error) throw error;
+        setIsInWatchlist(false);
+      } else {
+        const { error } = await supabase
+          .from('watchlist')
+          .insert([
+            {
+              user_id: userId,
+              movie_id: parseInt(params.id)
+            }
+          ]);
+
+        if (error) throw error;
+        setIsInWatchlist(true);
+      }
+    } catch (error) {
+      console.error('Error updating watchlist:', error);
+      alert('Failed to update watchlist. Please try again.');
+    } finally {
+      setIsWatchlistLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchMovieDetails();
@@ -188,9 +278,29 @@ export default function MovieDetailsPage({ params }: { params: { id: string } })
 
             {/* Details */}
             <div className="flex-grow space-y-3">
-              <h1 className="text-2xl font-bold text-gray-100">
-                {movie.title.replace(/\s*\(\d{4}\)$/, '')}
-              </h1>
+              <div className="flex justify-between items-start">
+                <h1 className="text-2xl font-bold text-gray-100">
+                  {movie.title.replace(/\s*\(\d{4}\)$/, '')}
+                </h1>
+                {isLoggedIn && (
+                  <button
+                    onClick={handleWatchlistClick}
+                    className={`p-2.5 rounded-full transition-all duration-200 ${
+                      isInWatchlist 
+                        ? 'bg-blue-500 text-white shadow-lg' 
+                        : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white'
+                    }`}
+                    disabled={isWatchlistLoading}
+                    title={isInWatchlist ? "Remove from watchlist" : "Add to watchlist"}
+                  >
+                    {isInWatchlist ? (
+                      <FiCheck className="w-5 h-5" />
+                    ) : (
+                      <FiBookmark className="w-5 h-5" />
+                    )}
+                  </button>
+                )}
+              </div>
               
               <div className="flex items-center gap-3 text-sm text-gray-400">
                 <span>{movie.releaseDate}</span>

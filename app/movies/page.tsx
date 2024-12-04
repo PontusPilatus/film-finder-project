@@ -159,7 +159,7 @@ export default function Movies() {
   const totalPages = Math.ceil(totalCount / MOVIES_PER_PAGE)
 
   return (
-    <div className="min-h-screen space-y-12">
+    <div className="min-h-screen space-y-12 pb-16">
       {/* Hero Section */}
       <section className="relative min-h-[40vh] sm:min-h-[50vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 hero-gradient opacity-30"></div>
@@ -282,19 +282,74 @@ export default function Movies() {
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex justify-center gap-2 mt-8">
-                {Array.from({ length: totalPages }, (_, i) => (
+                {/* Previous button */}
+                {currentPage > 1 && (
                   <button
-                    key={i + 1}
-                    onClick={() => setCurrentPage(i + 1)}
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                    className="px-4 py-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors"
+                  >
+                    Previous
+                  </button>
+                )}
+
+                {/* First page */}
+                <button
+                  onClick={() => setCurrentPage(1)}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    currentPage === 1
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20'
+                  }`}
+                >
+                  1
+                </button>
+
+                {/* Left ellipsis */}
+                {currentPage > 3 && <span className="px-4 py-2 text-gray-400">...</span>}
+
+                {/* Pages around current page */}
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter(page => page !== 1 && page !== totalPages && Math.abs(currentPage - page) <= 1)
+                  .map(page => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-4 py-2 rounded-lg transition-colors ${
+                        currentPage === page
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+
+                {/* Right ellipsis */}
+                {currentPage < totalPages - 2 && <span className="px-4 py-2 text-gray-400">...</span>}
+
+                {/* Last page */}
+                {totalPages > 1 && (
+                  <button
+                    onClick={() => setCurrentPage(totalPages)}
                     className={`px-4 py-2 rounded-lg transition-colors ${
-                      currentPage === i + 1
+                      currentPage === totalPages
                         ? 'bg-blue-500 text-white'
                         : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20'
                     }`}
                   >
-                    {i + 1}
+                    {totalPages}
                   </button>
-                ))}
+                )}
+
+                {/* Next button */}
+                {currentPage < totalPages && (
+                  <button
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    className="px-4 py-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors"
+                  >
+                    Next
+                  </button>
+                )}
               </div>
             )}
           </div>

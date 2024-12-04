@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useRouter } from 'next/navigation'
 import type { Movie } from '../../types/movie'
 import MovieList from '../components/MovieList'
-import { FiUser, FiMail, FiCalendar, FiClock, FiEdit2, FiLogOut } from 'react-icons/fi'
+import { FiUser, FiMail, FiCalendar, FiClock, FiEdit2, FiLogOut, FiBookmark } from 'react-icons/fi'
 
 interface UserProfile {
   user_id: number;
@@ -20,12 +20,17 @@ interface UserRating {
   rating: number;
 }
 
+interface WatchlistItem {
+  movie: Movie;
+}
+
 export default function Profile() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [username, setUsername] = useState('')
   const [userRatings, setUserRatings] = useState<UserRating[]>([])
+  const [watchlistItems, setWatchlistItems] = useState<WatchlistItem[]>([])
 
   useEffect(() => {
     checkUser()
@@ -51,7 +56,10 @@ export default function Profile() {
           setProfile(userProfile)
           setUsername(userProfile.username || '')
           console.log('Fetching ratings for user:', userProfile.user_id);
-          fetchUserRatings(userProfile.user_id)
+          await Promise.all([
+            fetchUserRatings(userProfile.user_id),
+            fetchWatchlist(userProfile.user_id)
+          ]);
         }
       } else {
         router.push('/login')
@@ -124,6 +132,85 @@ export default function Profile() {
       setUserRatings(transformedRatings);
     } catch (error) {
       console.error('Error in fetchUserRatings:', error);
+    }
+  }
+
+  async function fetchWatchlist(userId: number) {
+    try {
+      console.log('Fetching watchlist for user:', userId);
+      
+      // First get the watchlist items
+      const { data: watchlistItems, error: watchlistError } = await supabase
+        .from('watchlist')
+        .select('movie_id')
+        .eq('user_id', userId);
+
+      if (watchlistError) {
+        // Only log real errors, not 406 responses
+        if (!watchlistError.message?.includes('406')) {
+          console.error('Error fetching watchlist:', watchlistError);
+        }
+        return;
+      }
+
+      if (!watchlistItems || watchlistItems.length === 0) {
+        console.log('No watchlist items found');
+        setWatchlistItems([]);
+        return;
+      }
+
+      // Then get the movies details
+      const movieIds = watchlistItems.map(item => item.movie_id);
+      const { data: movies, error: moviesError } = await supabase
+        .from('movies')
+        .select(`
+          *,
+          ratings (rating)
+        `)
+        .in('movie_id', movieIds);
+
+      if (moviesError) {
+        // Only log real errors, not 406 responses
+        if (!moviesError.message?.includes('406')) {
+          console.error('Error fetching movies:', moviesError);
+        }
+        return;
+      }
+
+      if (!movies) {
+        setWatchlistItems([]);
+        return;
+      }
+
+      // Transform the movies data
+      const transformedWatchlist: WatchlistItem[] = movies.map(movie => {
+        const ratings = movie.ratings || [];
+        const totalRatings = ratings.length;
+        const averageRating = totalRatings > 0
+          ? Math.round((ratings.reduce((sum: number, r: any) => sum + r.rating, 0) / totalRatings) * 10) / 10
+          : null;
+
+        return {
+          movie: {
+            id: movie.movie_id.toString(),
+            title: movie.title,
+            overview: movie.overview,
+            posterPath: movie.poster_path || '',
+            releaseDate: movie.year?.toString() || '',
+            voteAverage: 0,
+            genres: movie.genres?.split('|') || [],
+            supabaseRatingAverage: averageRating,
+            totalRatings
+          }
+        };
+      });
+
+      setWatchlistItems(transformedWatchlist);
+    } catch (error: any) {
+      // Only log real errors, not 406 responses
+      if (!error.message?.includes('406')) {
+        console.error('Error in fetchWatchlist:', error);
+      }
     }
   }
 
@@ -292,6 +379,50 @@ export default function Profile() {
             ) : (
               <p className="text-center text-gray-400 py-8">
                 You haven't rated any movies yet. Start exploring and rating movies!
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Watchlist Section */}
+        <div className="space-y-8">
+          <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">
+            <div className="flex items-center gap-3">
+              <FiBookmark className="w-8 h-8" />
+              Your Watchlist
+            </div>
+          </h2>
+          
+          <div className="card backdrop-blur-lg">
+            <div className="flex justify-between items-center mb-6">
+              <p className="text-gray-300">
+                You have {watchlistItems.length} {watchlistItems.length === 1 ? 'movie' : 'movies'} in your watchlist
+              </p>
+            </div>
+
+            {watchlistItems.length > 0 ? (
+              <MovieList 
+                movies={watchlistItems.map(item => item.movie)}
+                showDelete={true}
+                onRatingDelete={async (movieId) => {
+                  try {
+                    const { error } = await supabase
+                      .from('watchlist')
+                      .delete()
+                      .eq('movie_id', movieId)
+                      .eq('user_id', profile?.user_id);
+
+                    if (error) throw error;
+                    await fetchWatchlist(profile?.user_id || 0);
+                  } catch (error) {
+                    console.error('Error removing from watchlist:', error);
+                    alert('Failed to remove from watchlist. Please try again.');
+                  }
+                }}
+              />
+            ) : (
+              <p className="text-center text-gray-400 py-8">
+                Your watchlist is empty. Start adding movies you want to watch!
               </p>
             )}
           </div>
