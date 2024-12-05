@@ -38,19 +38,31 @@ export default function RatingComponent({
       setIsLoggedIn(!!session);
       
       if (session?.user) {
-        const { data, error } = await supabase
+        // First try to get user by email
+        let { data: userData, error: userError } = await supabase
           .from('users')
           .select('user_id')
           .eq('email', session.user.email)
           .single();
         
-        if (error) {
-          console.error('Error fetching user:', error);
-          return;
+        if (userError || !userData) {
+          // If no user found by email, try to get by auth ID
+          const { data: userByAuth, error: authError } = await supabase
+            .from('users')
+            .select('user_id')
+            .eq('id', session.user.id)
+            .single();
+            
+          if (authError) {
+            console.error('Error fetching user:', authError);
+            return;
+          }
+          userData = userByAuth;
         }
         
-        if (data) {
-          setUserId(data.user_id);
+        if (userData) {
+          console.log('Found user ID:', userData.user_id);
+          setUserId(userData.user_id);
         }
       }
     } catch (error) {
@@ -63,29 +75,27 @@ export default function RatingComponent({
       if (!userId || !movieId) return;
 
       setHasAttemptedFetch(true);
+      const movieIdInt = parseInt(movieId);
+      console.log('Fetching rating for movie:', movieIdInt, 'and user:', userId);
+      
       const { data, error } = await supabase
         .from('ratings')
         .select('rating')
-        .eq('movie_id', movieId)
+        .eq('movie_id', movieIdInt)
         .eq('user_id', userId)
         .maybeSingle();
 
       if (error) {
-        // Only log real errors, not "no rating found"
-        if (error.code !== 'PGRST116') {
-          console.error('Error fetching rating:', error);
-        }
+        console.error('Error fetching rating:', error);
         return;
       }
 
+      console.log('Rating data received:', data);
       if (data) {
         setRating(data.rating);
       }
     } catch (error) {
-      // Only log unexpected errors
-      if (error instanceof Error && !error.message.includes('PGRST116')) {
-        console.error('Error:', error);
-      }
+      console.error('Unexpected error in fetchUserRating:', error);
     }
   }
 
@@ -98,20 +108,35 @@ export default function RatingComponent({
         return;
       }
 
-      const { error } = await supabase
+      const movieIdInt = parseInt(movieId);
+      console.log('Submitting rating:', {
+        movie_id: movieIdInt,
+        user_id: userId,
+        rating: newRating
+      });
+
+      // First try to delete any existing rating
+      await supabase
         .from('ratings')
-        .upsert({
-          movie_id: movieId,
+        .delete()
+        .eq('movie_id', movieIdInt)
+        .eq('user_id', userId);
+
+      // Then insert the new rating
+      const { data, error } = await supabase
+        .from('ratings')
+        .insert({
+          movie_id: movieIdInt,
           user_id: userId,
           rating: newRating
-        }, {
-          onConflict: 'movie_id,user_id'
         });
 
       if (error) {
+        console.error('Error inserting rating:', error);
         throw error;
       }
 
+      console.log('Rating submitted successfully:', data);
       setRating(newRating);
       if (onRatingSubmit) {
         onRatingSubmit();

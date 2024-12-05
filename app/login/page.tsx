@@ -12,22 +12,35 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
-  async function handleLogin(e: React.FormEvent) {
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
+    setLoading(true)
+    setError(null)
+
     try {
-      setLoading(true)
-      setError(null)
-      
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const authResponse = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
-      if (error) throw error
-      router.push('/')
-      
+      if (authResponse.error) throw authResponse.error
+
+      // Check if user has completed onboarding
+      const { data: preferences } = await supabase
+        .from('user_preferences')
+        .select('onboarding_completed')
+        .eq('user_id', authResponse.data.user!.id)
+        .single()
+
+      if (!preferences || !preferences.onboarding_completed) {
+        router.push('/onboarding')
+      } else {
+        router.push('/movies')
+      }
+
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'An error occurred')
+      console.error('Error:', error)
+      setError('An error occurred during sign in')
     } finally {
       setLoading(false)
     }
@@ -48,7 +61,7 @@ export default function Login() {
 
         {/* Login Form */}
         <div className="card backdrop-blur-lg">
-          <form onSubmit={handleLogin} className="space-y-6">
+          <form onSubmit={handleSignIn} className="space-y-6">
             {error && (
               <div className="p-4 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400 text-sm">
                 {error}

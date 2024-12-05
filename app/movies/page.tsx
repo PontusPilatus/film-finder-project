@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { Movie } from '../../types/movie'
 import MovieList from '../components/MovieList'
 import { FiSearch, FiFilter, FiX } from 'react-icons/fi'
+import { useOnboardingCheck } from '../hooks/useOnboardingCheck'
 
 const MOVIES_PER_PAGE = 10;
 
@@ -17,6 +18,7 @@ interface Filters {
 type SortOption = 'title' | 'rating_desc' | 'rating_asc' | 'most_rated';
 
 export default function Movies() {
+  useOnboardingCheck()
   const [movies, setMovies] = useState<Movie[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
@@ -83,12 +85,19 @@ export default function Movies() {
   async function fetchMovies() {
     try {
       setLoading(true);
+      console.log('Fetching movies with ratings...');
 
+      // Build the base query
       let query = supabase
         .from('movies')
         .select(`
-          *,
-          ratings:ratings(rating)
+          movie_id,
+          title,
+          year,
+          genres,
+          ratings!left (
+            rating
+          )
         `);
 
       // Apply filters
@@ -98,67 +107,72 @@ export default function Movies() {
       if (filters.yearTo) {
         query = query.lte('year', filters.yearTo);
       }
-      if (filters.genres && filters.genres.length > 0) {
-        console.log('Filtering for genres:', filters.genres);
-        const genreConditions = filters.genres.map(genre => {
-          const condition = `genres.ilike.%|${genre}|%`;
-          console.log('Genre condition:', condition);
-          return condition;
-        });
-        query = query.or(genreConditions.join(','));
-      }
       if (searchQuery) {
         query = query.ilike('title', `%${searchQuery}%`);
       }
+      if (filters.genres && filters.genres.length > 0) {
+        const genreConditions = filters.genres.map(genre => {
+          return `genres.ilike.%|${genre}|%`;
+        });
+        query = query.or(genreConditions.join(','));
+      }
 
-      const { data: movies, error } = await query;
-      console.log('Query results:', movies?.length, 'movies found');
+      // Get all movies first
+      const { data: allMovies, error: allMoviesError } = await query;
 
-      if (error) throw error;
-      if (!movies) return;
+      if (allMoviesError) {
+        console.error('Error fetching movies:', allMoviesError);
+        throw allMoviesError;
+      }
 
-      // Transform movies and calculate ratings in one pass
-      const transformedMovies = movies.map(movie => {
+      if (!allMovies) return;
+
+      // Transform and calculate ratings for all movies
+      const transformedMovies = allMovies.map(movie => {
         const ratings = movie.ratings || [];
         const totalRatings = ratings.length;
-        const ratingSum = ratings.reduce((sum: number, r: any) => sum + r.rating, 0);
-        const ratingAverage = totalRatings > 0 ? Math.round((ratingSum / totalRatings) * 10) / 10 : null;
+        const ratingSum = ratings.reduce((sum: number, r: any) => sum + (r.rating || 0), 0);
+        const ratingAverage = totalRatings > 0 ? Math.round((ratingSum / totalRatings) * 10) / 10 : 0;
 
         return {
           id: movie.movie_id.toString(),
+          movie_id: movie.movie_id,
           title: movie.title,
-          overview: movie.overview,
-          posterPath: movie.poster_path || '',
+          overview: "", // This column doesn't exist in DB
+          posterPath: "", // This column doesn't exist in DB
           releaseDate: movie.year?.toString() || '',
-          voteAverage: ratingAverage || 0,
-          genres: movie.genres || '',
+          voteAverage: ratingAverage,
+          genres: movie.genres ? movie.genres.split('|').filter(Boolean) : [],
           supabaseRatingAverage: ratingAverage,
           totalRatings
         };
       });
 
-      // Sort movies
-      transformedMovies.sort((a, b) => {
-        switch (sortBy) {
-          case 'rating_desc':
-            return (b.supabaseRatingAverage || 0) - (a.supabaseRatingAverage || 0);
-          case 'rating_asc':
-            return (a.supabaseRatingAverage || 0) - (b.supabaseRatingAverage || 0);
-          case 'most_rated':
-            return b.totalRatings - a.totalRatings;
-          default:
-            return a.title.localeCompare(b.title);
-        }
-      });
+      // Sort all movies
+      switch (sortBy) {
+        case 'rating_desc':
+          transformedMovies.sort((a, b) => (b.supabaseRatingAverage || 0) - (a.supabaseRatingAverage || 0));
+          break;
+        case 'rating_asc':
+          transformedMovies.sort((a, b) => (a.supabaseRatingAverage || 0) - (b.supabaseRatingAverage || 0));
+          break;
+        case 'most_rated':
+          transformedMovies.sort((a, b) => b.totalRatings - a.totalRatings);
+          break;
+        default:
+          transformedMovies.sort((a, b) => a.title.localeCompare(b.title));
+      }
 
-      setTotalCount(transformedMovies.length);
+      // Apply pagination after sorting
       const start = (currentPage - 1) * MOVIES_PER_PAGE;
       const end = start + MOVIES_PER_PAGE;
-      console.log('Transformed movies before setting:', transformedMovies);
-      setMovies(transformedMovies.slice(start, end));
+      const paginatedMovies = transformedMovies.slice(start, end);
+
+      setTotalCount(transformedMovies.length);
+      setMovies(paginatedMovies);
 
     } catch (error) {
-      console.error('Error fetching movies:', error);
+      console.error('Error in fetchMovies:', error);
     } finally {
       setLoading(false);
     }

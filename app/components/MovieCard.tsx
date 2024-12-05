@@ -69,10 +69,10 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, 
     try {
       const { data, error } = await supabase
         .from('watchlist')
-        .select('*')
+        .select('id')
         .eq('user_id', userId)
-        .eq('movie_id', movie.id)
-        .single();
+        .eq('movie_id', movie.movie_id || parseInt(movie.id))
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error checking watchlist status:', error);
@@ -90,13 +90,14 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, 
 
     try {
       setIsLoading(true);
+      const movieIdToUse = movie.movie_id || parseInt(movie.id);
 
       if (isInWatchlist) {
         const { error } = await supabase
           .from('watchlist')
           .delete()
           .eq('user_id', userId)
-          .eq('movie_id', movie.id);
+          .eq('movie_id', movieIdToUse);
 
         if (error) throw error;
         setIsInWatchlist(false);
@@ -106,7 +107,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, 
           .insert([
             {
               user_id: userId,
-              movie_id: parseInt(movie.id)
+              movie_id: movieIdToUse
             }
           ]);
 
@@ -198,23 +199,21 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, 
             <div className="flex flex-col gap-1">
               <span className="text-sm text-gray-400">My Rating</span>
               <RatingComponent
-                movieId={movie.id}
+                movieId={(movie.movie_id || movie.id).toString()}
                 showDelete={showDelete}
                 onRatingDelete={handleRatingDelete}
               />
             </div>
           )}
-          {movie.supabaseRatingAverage && typeof movie.supabaseRatingAverage === 'number' && (
-            <div className={`text-right ${!isLoggedIn ? 'ml-auto' : ''}`}>
-              <div className="text-sm text-gray-400">Average Rating</div>
-              <div className="text-xl font-bold text-primary">
-                {movie.supabaseRatingAverage.toFixed(1)}
-                <span className="text-sm text-gray-400 ml-1">
-                  ({movie.totalRatings} {movie.totalRatings === 1 ? 'rating' : 'ratings'})
-                </span>
-              </div>
+          <div className={`text-right ${!isLoggedIn ? 'ml-auto' : ''}`}>
+            <div className="text-sm text-gray-400">Average Rating</div>
+            <div className="text-xl font-bold text-primary">
+              {movie.supabaseRatingAverage ? movie.supabaseRatingAverage.toFixed(1) : '0.0'}
+              <span className="text-sm text-gray-400 ml-1">
+                ({movie.totalRatings || 0} {(movie.totalRatings || 0) === 1 ? 'rating' : 'ratings'})
+              </span>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </Link>
