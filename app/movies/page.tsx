@@ -33,6 +33,7 @@ export default function Movies() {
     // Get genres from URL parameters when page loads
     const urlParams = new URLSearchParams(window.location.search);
     const genresParam = urlParams.get('genres');
+    const sortByParam = urlParams.get('sortBy') as SortOption;
     
     if (genresParam) {
       const genresList = genresParam.split(',');
@@ -40,6 +41,10 @@ export default function Movies() {
         ...prev,
         genres: genresList
       }));
+    }
+
+    if (sortByParam) {
+      setSortBy(sortByParam);
     }
   }, []); // Run once when component mounts
 
@@ -98,15 +103,15 @@ export default function Movies() {
       if (filters.yearTo) {
         query = query.lte('year', filters.yearTo);
       }
+      
+      // Modified genre filtering to require ALL selected genres
       if (filters.genres && filters.genres.length > 0) {
-        console.log('Filtering for genres:', filters.genres);
-        const genreConditions = filters.genres.map(genre => {
-          const condition = `genres.ilike.%|${genre}|%`;
-          console.log('Genre condition:', condition);
-          return condition;
+        // Use .and() to ensure ALL conditions are met
+        filters.genres.forEach(genre => {
+          query = query.ilike('genres', `%${genre}%`);
         });
-        query = query.or(genreConditions.join(','));
       }
+
       if (searchQuery) {
         query = query.ilike('title', `%${searchQuery}%`);
       }
