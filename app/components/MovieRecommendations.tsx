@@ -43,34 +43,31 @@ export default function MovieRecommendations({ userId }: { userId: number }) {
     const fetchRecommendations = async () => {
       try {
         setLoading(true);
-        console.log('Frontend: Fetching recommendations for user:', userId);
-        
+        console.log('Fetching recommendations for user:', userId);
+
         const response = await fetch(`/api/recommendations/${userId}`);
-        console.log('Frontend: Response status:', response.status);
-        
-        const contentType = response.headers.get('content-type');
-        console.log('Frontend: Response content type:', contentType);
-        
+        console.log('Response status:', response.status);
+
         if (!response.ok) {
-          const text = await response.text();
-          console.error('Frontend: Error response:', {
-            status: response.status,
-            statusText: response.statusText,
-            body: text
-          });
+          const errorText = await response.text();
+          console.error('API Error:', errorText);
           throw new Error(`Failed to fetch: ${response.statusText}`);
         }
-        
+
         const data = await response.json();
-        console.log('Frontend: Received data:', data);
-        
+        console.log('Received recommendations:', data);
+
         if (data.error) {
           throw new Error(data.error);
         }
-        
+
+        if (!data.recommendations || data.recommendations.length === 0) {
+          console.log('No recommendations returned from API');
+        }
+
         setRecommendations(data.recommendations || []);
       } catch (err) {
-        console.error('Frontend: Error:', err);
+        console.error('Error fetching recommendations:', err);
         setError(err instanceof Error ? err.message : 'Failed to load recommendations');
       } finally {
         setLoading(false);
@@ -79,12 +76,14 @@ export default function MovieRecommendations({ userId }: { userId: number }) {
 
     if (userId) {
       fetchRecommendations();
+    } else {
+      console.log('No userId provided');
     }
   }, [userId]);
 
   const handleWatchlistClick = async (e: React.MouseEvent, movieId: number) => {
     e.preventDefault();
-    
+
     try {
       if (watchlist.has(movieId)) {
         // Remove from watchlist
@@ -131,8 +130,8 @@ export default function MovieRecommendations({ userId }: { userId: number }) {
     return (
       <div className="text-center p-8 bg-red-500/10 rounded-lg border border-red-500/20">
         <p className="text-red-400 text-lg mb-4">{error}</p>
-        <button 
-          onClick={() => window.location.reload()} 
+        <button
+          onClick={() => window.location.reload()}
           className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200"
         >
           Try Again
@@ -145,7 +144,7 @@ export default function MovieRecommendations({ userId }: { userId: number }) {
     return (
       <div className="text-center p-8 bg-blue-500/10 rounded-lg border border-blue-500/20">
         <p className="text-gray-300 text-lg mb-2">No recommendations available at the moment.</p>
-        <p className="text-gray-400">Try rating some movies to get personalized recommendations!</p>
+        <p className="text-gray-400">Rate more movies to get even better recommendations!</p>
       </div>
     );
   }
@@ -153,9 +152,9 @@ export default function MovieRecommendations({ userId }: { userId: number }) {
   return (
     <div className="space-y-4 max-w-4xl mx-auto">
       {recommendations.map((movie, index) => (
-        <Link 
-          key={movie.movieId} 
-          href={`/movies/${movie.movieId}`} 
+        <Link
+          key={movie.movieId}
+          href={`/movies/${movie.movieId}`}
           className="block"
         >
           <div className="card hover:border-primary group transition-all duration-200">
@@ -187,11 +186,10 @@ export default function MovieRecommendations({ userId }: { userId: number }) {
               {/* Watchlist Button */}
               <button
                 onClick={(e) => handleWatchlistClick(e, movie.movieId)}
-                className={`ml-4 p-2 rounded-full transition-all duration-200 ${
-                  watchlist.has(movie.movieId)
-                    ? 'bg-blue-500 text-white' 
-                    : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white'
-                }`}
+                className={`ml-4 p-2 rounded-full transition-all duration-200 ${watchlist.has(movie.movieId)
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white'
+                  }`}
                 title={watchlist.has(movie.movieId) ? "Remove from watchlist" : "Add to watchlist"}
               >
                 {watchlist.has(movie.movieId) ? (
@@ -214,7 +212,7 @@ export default function MovieRecommendations({ userId }: { userId: number }) {
                 <span className="text-sm text-gray-400">Recommendation Score</span>
                 <div className="flex items-center gap-2">
                   <div className="w-32 h-2 bg-blue-500/20 rounded-full overflow-hidden">
-                    <div 
+                    <div
                       className="h-full bg-primary transition-all duration-300"
                       style={{ width: `${(movie.score / 5) * 100}%` }}
                     ></div>
@@ -241,10 +239,7 @@ export default function MovieRecommendations({ userId }: { userId: number }) {
       ))}
 
       <div className="text-center text-sm text-gray-400 mt-8">
-        <p>
-          These recommendations are personalized based on your rating history and similar users' preferences.
-          Rate more movies to get even better recommendations!
-        </p>
+        <p>Rate more movies to get even better recommendations!</p>
       </div>
     </div>
   );

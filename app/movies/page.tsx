@@ -8,8 +8,9 @@ import { FiSearch, FiFilter, FiX } from 'react-icons/fi'
 const MOVIES_PER_PAGE = 10;
 
 interface Filters {
-  year?: number;
-  genre?: string;
+  yearFrom?: number;
+  yearTo?: number;
+  genres?: string[];
   minRating?: number;
 }
 
@@ -78,11 +79,17 @@ export default function Movies() {
         `);
 
       // Apply filters
-      if (filters.year) {
-        query = query.eq('year', filters.year);
+      if (filters.yearFrom) {
+        query = query.gte('year', filters.yearFrom);
       }
-      if (filters.genre) {
-        query = query.ilike('genres', `%${filters.genre}%`);
+      if (filters.yearTo) {
+        query = query.lte('year', filters.yearTo);
+      }
+      if (filters.genres && filters.genres.length > 0) {
+        // Match all selected genres (AND condition)
+        filters.genres.forEach(genre => {
+          query = query.ilike('genres', `%${genre}%`);
+        });
       }
       if (searchQuery) {
         query = query.ilike('title', `%${searchQuery}%`);
@@ -150,10 +157,17 @@ export default function Movies() {
 
   const handleGenreClick = (genre: string) => {
     setCurrentPage(1);
-    setFilters(prev => ({
-      ...prev,
-      genre: prev.genre === genre ? undefined : genre // Toggle genre filter
-    }));
+    setFilters(prev => {
+      const currentGenres = prev.genres || [];
+      const newGenres = currentGenres.includes(genre)
+        ? currentGenres.filter(g => g !== genre)
+        : [...currentGenres, genre];
+      
+      return {
+        ...prev,
+        genres: newGenres.length > 0 ? newGenres : undefined
+      };
+    });
   };
 
   const totalPages = Math.ceil(totalCount / MOVIES_PER_PAGE)
@@ -184,7 +198,7 @@ export default function Movies() {
       {/* Search and Filters Card */}
       <section className="container-wrapper py-16">
         <div className="card bg-[var(--background-card)] backdrop-blur-md border-white/10">
-          <div className="space-y-6">
+          <div className="space-y-8">
             {/* Search */}
             <div className="flex gap-4">
               <div className="relative flex-grow">
@@ -209,46 +223,126 @@ export default function Movies() {
               </button>
             </div>
 
-            {/* Filters and Sorting */}
-            <div className="flex flex-wrap gap-4 items-center">
-              <select
-                className="input-field max-w-[200px]"
-                value={filters.year || ''}
-                onChange={(e) => handleFilterChange('year', e.target.value)}
-              >
-                <option value="">All Years</option>
-                {availableYears.map(year => (
-                  <option key={year} value={year}>{year}</option>
-                ))}
-              </select>
+            {/* Filters Section */}
+            <div className="space-y-6">
+              {/* Year Range and Sort */}
+              <div className="flex flex-wrap gap-6">
+                {/* Year Range */}
+                <div>
+                  <label className="text-sm text-gray-400 block mb-2">Year Range</label>
+                  <div className="flex items-center gap-2">
+                    <select
+                      className="bg-[var(--background-dark)] border border-white/10 rounded-lg px-4 py-2.5 
+                               text-gray-200 w-[120px] focus:outline-none focus:ring-2 focus:ring-blue-500/40
+                               hover:border-white/20 transition-colors appearance-none cursor-pointer
+                               bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik01Ljk5OTg5IDQuOTc2NzFMMTAuMTk1OSAwLjc4MDc2MUwxMS42MDk5IDIuMTk0NzZMNS45OTk4OSA3LjgwNDc2TDAuMzg5ODkzIDIuMTk0NzZMMS44MDM4OSAwLjc4MDc2MUw1Ljk5OTg5IDQuOTc2NzFaIiBmaWxsPSIjOTRBM0I4Ii8+Cjwvc3ZnPgo=')] 
+                               bg-[length:12px_12px] bg-[right_16px_center] bg-no-repeat"
+                      value={filters.yearFrom || ''}
+                      onChange={(e) => handleFilterChange('yearFrom', e.target.value)}
+                    >
+                      <option value="">From</option>
+                      {availableYears.map(year => (
+                        <option key={year} value={year}>{year}</option>
+                      ))}
+                    </select>
 
-              <select
-                className="input-field max-w-[200px]"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SortOption)}
-              >
-                <option value="title">Title (A-Z)</option>
-                <option value="rating_desc">Highest Rated</option>
-                <option value="rating_asc">Lowest Rated</option>
-                <option value="most_rated">Most Rated</option>
-              </select>
+                    <span className="text-gray-400">-</span>
+
+                    <select
+                      className="bg-[var(--background-dark)] border border-white/10 rounded-lg px-4 py-2.5 
+                               text-gray-200 w-[120px] focus:outline-none focus:ring-2 focus:ring-blue-500/40
+                               hover:border-white/20 transition-colors appearance-none cursor-pointer
+                               bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik01Ljk5OTg5IDQuOTc2NzFMMTAuMTk1OSAwLjc4MDc2MUwxMS42MDk5IDIuMTk0NzZMNS45OTk4OSA3LjgwNDc2TDAuMzg5ODkzIDIuMTk0NzZMMS44MDM4OSAwLjc4MDc2MUw1Ljk5OTg5IDQuOTc2NzFaIiBmaWxsPSIjOTRBM0I4Ii8+Cjwvc3ZnPgo=')] 
+                               bg-[length:12px_12px] bg-[right_16px_center] bg-no-repeat"
+                      value={filters.yearTo || ''}
+                      onChange={(e) => handleFilterChange('yearTo', e.target.value)}
+                    >
+                      <option value="">To</option>
+                      {availableYears.map(year => (
+                        <option key={year} value={year}>{year}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Sort */}
+                <div>
+                  <label className="text-sm text-gray-400 block mb-2">Sort By</label>
+                  <select
+                    className="bg-[var(--background-dark)] border border-white/10 rounded-lg px-4 py-2.5 
+                             text-gray-200 w-[200px] focus:outline-none focus:ring-2 focus:ring-blue-500/40
+                             hover:border-white/20 transition-colors appearance-none cursor-pointer
+                             bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik01Ljk5OTg5IDQuOTc2NzFMMTAuMTk1OSAwLjc4MDc2MUwxMS42MDk5IDIuMTk0NzZMNS45OTk4OSA3LjgwNDc2TDAuMzg5ODkzIDIuMTk0NzZMMS44MDM4OSAwLjc4MDc2MUw1Ljk5OTg5IDQuOTc2NzFaIiBmaWxsPSIjOTRBM0I4Ii8+Cjwvc3ZnPgo=')] 
+                             bg-[length:12px_12px] bg-[right_16px_center] bg-no-repeat"
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as SortOption)}
+                  >
+                    <option value="title">Title (A-Z)</option>
+                    <option value="rating_desc">Highest Rated</option>
+                    <option value="rating_asc">Lowest Rated</option>
+                    <option value="most_rated">Most Rated</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Genre Tags */}
+              <div>
+                <label className="text-sm text-gray-400 block mb-2">Genres (select multiple)</label>
+                <div className="flex flex-wrap gap-2">
+                  {availableGenres.map(genre => (
+                    <button
+                      key={genre}
+                      onClick={() => handleGenreClick(genre)}
+                      className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
+                        filters.genres?.includes(genre)
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20'
+                      }`}
+                    >
+                      {genre}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               {/* Active Filters */}
-              <div className="flex flex-wrap gap-2">
-                {filters.genre && (
-                  <span className="px-3 py-1.5 rounded-full bg-blue-500/10 text-blue-400 
-                                 flex items-center gap-2 text-sm">
-                    {filters.genre}
-                    <button
-                      onClick={() => handleFilterChange('genre', '')}
-                      className="hover:text-white transition-colors"
-                    >
-                      <FiX />
-                    </button>
-                  </span>
-                )}
+              {(filters.yearFrom || filters.yearTo || (filters.genres && filters.genres.length > 0)) && (
+                <div className="flex flex-wrap items-center gap-2 pt-2">
+                  {/* Show active year range filter */}
+                  {(filters.yearFrom || filters.yearTo) && (
+                    <span className="px-3 py-1.5 rounded-full bg-blue-500 text-white 
+                                   flex items-center gap-2 text-sm">
+                      Year: {filters.yearFrom || 'Any'} - {filters.yearTo || 'Any'}
+                      <button
+                        onClick={() => {
+                          handleFilterChange('yearFrom', '');
+                          handleFilterChange('yearTo', '');
+                        }}
+                        className="hover:text-blue-200 transition-colors"
+                      >
+                        <FiX />
+                      </button>
+                    </span>
+                  )}
 
-                {(filters.year || filters.genre) && (
+                  {/* Show active genre filters */}
+                  {filters.genres?.map(genre => (
+                    <span
+                      key={genre}
+                      className="px-3 py-1.5 rounded-full bg-blue-500 text-white 
+                               flex items-center gap-2 text-sm"
+                    >
+                      {genre}
+                      <button
+                        onClick={() => handleGenreClick(genre)}
+                        className="hover:text-blue-200 transition-colors"
+                      >
+                        <FiX />
+                      </button>
+                    </span>
+                  ))}
+
+                  {/* Clear all filters button */}
                   <button
                     className="px-3 py-1.5 rounded-full bg-blue-500/10 text-blue-400 
                              hover:bg-blue-500/20 transition-colors text-sm flex items-center gap-2"
@@ -259,10 +353,10 @@ export default function Movies() {
                     }}
                   >
                     <FiFilter />
-                    Clear Filters
+                    Clear All
                   </button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

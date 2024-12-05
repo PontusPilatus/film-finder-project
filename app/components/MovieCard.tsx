@@ -30,7 +30,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, 
           .select('user_id')
           .eq('email', session.user.email)
           .single();
-        
+
         if (!error && data) {
           setUserId(data.user_id);
         }
@@ -47,7 +47,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, 
           .select('user_id')
           .eq('email', session.user.email)
           .single();
-        
+
         if (data) {
           setUserId(data.user_id);
         }
@@ -127,8 +127,8 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, 
     }
   };
 
-  const genres: string[] = Array.isArray(movie.genres) 
-    ? movie.genres 
+  const genres: string[] = Array.isArray(movie.genres)
+    ? movie.genres
     : (movie.genres as string)?.split('|') || [];
 
   return (
@@ -177,11 +177,10 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, 
                 e.preventDefault();
                 handleWatchlistClick(e);
               }}
-              className={`ml-4 p-2 rounded-full transition-all duration-200 ${
-                isInWatchlist 
-                  ? 'bg-blue-500 text-white' 
+              className={`ml-4 p-2 rounded-full transition-all duration-200 ${isInWatchlist
+                  ? 'bg-blue-500 text-white'
                   : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white'
-              }`}
+                }`}
               disabled={isLoading}
               title={isInWatchlist ? "Remove from watchlist" : "Add to watchlist"}
             >
@@ -193,12 +192,12 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, 
             </button>
           )}
         </div>
-        
+
         <div className="mt-4 flex items-center justify-between">
           {isLoggedIn && (
             <div className="flex flex-col gap-1">
               <span className="text-sm text-gray-400">My Rating</span>
-              <RatingComponent 
+              <RatingComponent
                 movieId={movie.id}
                 showDelete={showDelete}
                 onRatingDelete={handleRatingDelete}

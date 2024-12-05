@@ -1,53 +1,130 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/app/lib/supabase';
+import path from 'path';
+import fs from 'fs';
 
-// Calculate similarity between two users based on their ratings
-function calculateUserSimilarity(userRatings1: any[], userRatings2: any[]): number {
-  const ratings1Map = new Map(userRatings1.map(r => [r.movie_id, r.rating]));
-  const ratings2Map = new Map(userRatings2.map(r => [r.movie_id, r.rating]));
+// Initialize model components with null values
+let modelComponents: {
+  P: number[][],
+  Q: number[][],
+  bu: number[],
+  bi: number[],
+  mu: number,
+  user_id_map: { [key: string]: number },
+  movie_id_map: { [key: string]: number }
+} | null = null;
 
-  // Find movies both users have rated
-  const commonMovies = Array.from(ratings1Map.keys()).filter(movieId => ratings2Map.has(movieId));
+// Try to load the model
+try {
+  console.log('Current working directory:', process.cwd());
+  const modelPath = path.join(process.cwd(), 'app/data/model_components.json');
+  console.log('Loading model from:', modelPath);
 
-  if (commonMovies.length === 0) return 0;
+  const fileContents = fs.readFileSync(modelPath, 'utf8');
+  modelComponents = JSON.parse(fileContents);
 
-  // Calculate Pearson correlation
-  const ratings1 = commonMovies.map(movieId => ratings1Map.get(movieId)!);
-  const ratings2 = commonMovies.map(movieId => ratings2Map.get(movieId)!);
-
-  const avg1 = ratings1.reduce((a, b) => a + b, 0) / ratings1.length;
-  const avg2 = ratings2.reduce((a, b) => a + b, 0) / ratings2.length;
-
-  let numerator = 0;
-  let denominator1 = 0;
-  let denominator2 = 0;
-
-  for (let i = 0; i < ratings1.length; i++) {
-    const diff1 = ratings1[i] - avg1;
-    const diff2 = ratings2[i] - avg2;
-    numerator += diff1 * diff2;
-    denominator1 += diff1 * diff1;
-    denominator2 += diff2 * diff2;
-  }
-
-  if (denominator1 === 0 || denominator2 === 0) return 0;
-  return numerator / Math.sqrt(denominator1 * denominator2);
+  console.log('Model loaded successfully:', {
+    hasPArray: Array.isArray(modelComponents?.P),
+    PLength: modelComponents?.P?.length,
+    userMapSize: Object.keys(modelComponents?.user_id_map || {}).length,
+    sampleUserIds: Object.keys(modelComponents?.user_id_map || {}).slice(0, 5),
+    userMapStructure: typeof modelComponents?.user_id_map,
+  });
+} catch (error) {
+  console.error('Error loading model:', error);
+  modelComponents = null;
 }
 
-const MOVIE_QUERY = `
-  movie_id,
-  title,
-  genres,
-  ratings (
-    rating
-  ),
-  genre_count
-`;
+function predictWithSVD(userIdx: number, movieIdx: number) {
+  if (!modelComponents) return null;
+  const { P, Q, bu, bi, mu } = modelComponents;
+  return mu + bu[userIdx] + bi[movieIdx] +
+    P[userIdx].reduce((sum: number, val: number, i: number) => sum + val * Q[movieIdx][i], 0);
+}
 
-// Normalize score to be between 0 and 5
-function normalizeScore(score: number, min: number, max: number): number {
-  if (max === min) return 3.5; // Default score if all scores are the same
-  return ((score - min) / (max - min)) * 5;
+async function getGenreBasedRecommendations(
+  userId: number,
+  unratedMovies: any[],
+  userRatings: any[]
+) {
+  // Get the movies this user has rated highly (4 or 5 stars)
+  const highlyRated = userRatings.filter(r => r.rating >= 4);
+
+  // If user hasn't rated anything highly yet, return popular movies
+  if (highlyRated.length === 0) {
+    return unratedMovies
+      .map(movie => {
+        const ratings = movie.ratings || [];
+        const avgRating = ratings.length > 0
+          ? ratings.reduce((sum: number, r: any) => sum + r.rating, 0) / ratings.length
+          : 0;
+
+        // For popular movies, keep score between 1-5
+        return {
+          movieId: movie.movie_id,
+          title: movie.title,
+          score: Number(Math.min(5, Math.max(1, avgRating)).toFixed(2)),
+          genres: movie.genres?.split('|').map((g: string) => g.trim()) || [],
+          averageRating: avgRating,
+          totalRatings: ratings.length
+        };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 10);
+  }
+
+  // Get genres from highly rated movies
+  const { data: ratedMovies } = await supabase
+    .from('movies')
+    .select('genres')
+    .in('movie_id', highlyRated.map(r => r.movie_id));
+
+  // Create a map of genre preferences
+  const genrePreferences = new Map<string, number>();
+  ratedMovies?.forEach(movie => {
+    const genres = movie.genres.split('|').map((g: string) => g.trim());
+    genres.forEach((genre: string) => {
+      genrePreferences.set(genre, (genrePreferences.get(genre) || 0) + 1);
+    });
+  });
+
+  // Get the maximum genre count for normalization
+  const maxGenreCount = Math.max(...Array.from(genrePreferences.values()));
+
+  // Score unrated movies based on genre preferences
+  return unratedMovies
+    .map(movie => {
+      const movieGenres = movie.genres.split('|').map((g: string) => g.trim());
+      const ratings = movie.ratings || [];
+      const avgRating = ratings.length > 0
+        ? ratings.reduce((sum: number, r: any) => sum + r.rating, 0) / ratings.length
+        : 3; // Default rating if no ratings available
+
+      // Calculate genre match score (0-1)
+      let genreMatchCount = 0;
+      movieGenres.forEach((genre: string) => {
+        if (genrePreferences.has(genre)) {
+          genreMatchCount += genrePreferences.get(genre)! / maxGenreCount;
+        }
+      });
+      const genreScore = genreMatchCount / movieGenres.length; // Normalize by number of genres
+
+      // Calculate final score (1-5 range)
+      // Weight: 70% genre match, 30% average rating
+      const weightedScore = (genreScore * 0.7 * 5) + (avgRating * 0.3);
+      const finalScore = Math.min(5, Math.max(1, weightedScore));
+
+      return {
+        movieId: movie.movie_id,
+        title: movie.title,
+        score: Number(finalScore.toFixed(2)),
+        genres: movieGenres,
+        averageRating: avgRating,
+        totalRatings: ratings.length
+      };
+    })
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10);
 }
 
 export async function GET(
@@ -56,187 +133,86 @@ export async function GET(
 ) {
   try {
     const userId = parseInt(params.userId);
-    if (isNaN(userId)) {
-      return NextResponse.json(
-        { error: 'Invalid user ID' },
-        { status: 400 }
-      );
-    }
+    console.log('Processing request for user:', userId);
 
-    // Get target user's ratings
+    // Get user's ratings
     const { data: userRatings, error: ratingsError } = await supabase
       .from('ratings')
       .select('movie_id, rating')
       .eq('user_id', userId);
 
-    if (ratingsError) {
-      console.error('Error fetching user ratings:', ratingsError);
-      return NextResponse.json(
-        { error: 'Database error', details: ratingsError.message },
-        { status: 500 }
-      );
-    }
+    if (ratingsError) throw ratingsError;
 
-    // For new users or users with no ratings, return popular movies
-    if (!userRatings || userRatings.length === 0) {
-      const { data: movies, error: moviesError } = await supabase
-        .from('movies')
-        .select(MOVIE_QUERY);
+    // Get all movies with their ratings
+    const { data: movies, error: moviesError } = await supabase
+      .from('movies')
+      .select(`
+        movie_id,
+        title,
+        genres,
+        ratings (rating)
+      `);
 
-      if (moviesError) {
-        console.error('Error fetching movies:', moviesError);
-        return NextResponse.json(
-          { error: 'Database error', details: moviesError.message },
-          { status: 500 }
-        );
-      }
+    if (moviesError) throw moviesError;
 
-      // Calculate popularity scores
-      const recommendations = movies
+    // Filter out rated movies
+    const ratedMovieIds = new Set(userRatings?.map(r => r.movie_id));
+    const unratedMovies = movies?.filter(movie => !ratedMovieIds.has(movie.movie_id));
+
+    // Check if we can use SVD model
+    if (modelComponents && modelComponents.user_id_map[userId.toString()] !== undefined) {
+      console.log('Using SVD model for user:', userId, {
+        userIdx: modelComponents.user_id_map[userId.toString()],
+        userMapKeys: Object.keys(modelComponents.user_id_map).slice(0, 5),
+      });
+      const userIdx = modelComponents.user_id_map[userId.toString()];
+
+      const recommendations = unratedMovies
         ?.map(movie => {
+          const movieIdx = modelComponents?.movie_id_map[movie.movie_id.toString()];
+          if (movieIdx === undefined) return null;
+
+          const svdScore = predictWithSVD(userIdx, movieIdx);
+          if (svdScore === null) return null;
+
           const ratings = movie.ratings || [];
-          const totalRatings = ratings.length;
-          const averageRating = totalRatings > 0
-            ? ratings.reduce((sum, r) => sum + (r.rating || 0), 0) / totalRatings
+          const avgRating = ratings.length > 0
+            ? ratings.reduce((sum: number, r: any) => sum + r.rating, 0) / ratings.length
             : 0;
 
-          // Weighted score based on ratings count and average rating
-          const score = (totalRatings * averageRating) / (totalRatings + 10);
-
           return {
-            title: movie.title,
-            score: Number(score.toFixed(2)),
             movieId: movie.movie_id,
-            averageRating,
-            totalRatings,
-            genres: movie.genres?.split('|').map((g: string) => g.trim()) || []
+            title: movie.title,
+            score: Number((svdScore * 0.8 + 1).toFixed(2)),
+            genres: movie.genres?.split('|').map((g: string) => g.trim()) || [],
+            averageRating: avgRating,
+            totalRatings: ratings.length
           };
         })
+        .filter((r): r is NonNullable<typeof r> => r !== null)
         .sort((a, b) => b.score - a.score)
         .slice(0, 10);
 
+      return NextResponse.json({ recommendations, method: 'SVD Model' });
+    } else {
+      console.log('New user detected, using genre-based recommendations');
+      const recommendations = await getGenreBasedRecommendations(
+        userId,
+        unratedMovies || [],
+        userRatings || []
+      );
+
       return NextResponse.json({
         recommendations,
-        message: 'Popular movies (rate some movies to get personalized recommendations)'
+        method: userRatings?.length ? 'Genre-based' : 'Popularity-based'
       });
     }
-
-    // Get all users' ratings for collaborative filtering
-    const { data: allUserRatings, error: allRatingsError } = await supabase
-      .from('ratings')
-      .select('user_id, movie_id, rating');
-
-    if (allRatingsError) {
-      console.error('Error fetching all ratings:', allRatingsError);
-      return NextResponse.json(
-        { error: 'Database error', details: allRatingsError.message },
-        { status: 500 }
-      );
-    }
-
-    // Group ratings by user
-    const userRatingsMap = new Map();
-    allUserRatings?.forEach(rating => {
-      if (!userRatingsMap.has(rating.user_id)) {
-        userRatingsMap.set(rating.user_id, []);
-      }
-      userRatingsMap.get(rating.user_id).push(rating);
-    });
-
-    // Calculate similarities with other users
-    const similarities: [number, number][] = []; // [userId, similarity]
-    userRatingsMap.forEach((otherUserRatings, otherUserId) => {
-      if (otherUserId !== userId) {
-        const similarity = calculateUserSimilarity(userRatings, otherUserRatings);
-        similarities.push([otherUserId, similarity]);
-      }
-    });
-
-    // Sort by similarity and get top similar users
-    const similarUsers = similarities
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
-      .filter(([_, similarity]) => similarity > 0);
-
-    // Get movies rated by similar users
-    const ratedMovieIds = new Set(userRatings.map(r => r.movie_id));
-    const movieScores = new Map<number, { score: number, count: number }>();
-
-    similarUsers.forEach(([similarUserId, similarity]) => {
-      const similarUserRatings = userRatingsMap.get(similarUserId);
-      similarUserRatings.forEach((rating: any) => {
-        if (!ratedMovieIds.has(rating.movie_id)) {
-          if (!movieScores.has(rating.movie_id)) {
-            movieScores.set(rating.movie_id, { score: 0, count: 0 });
-          }
-          const movieScore = movieScores.get(rating.movie_id)!;
-          movieScore.score += rating.rating * similarity;
-          movieScore.count += 1;
-        }
-      });
-    });
-
-    // Get movie details for recommendations
-    const movieIds = Array.from(movieScores.keys());
-    const { data: movies, error: moviesError } = await supabase
-      .from('movies')
-      .select(MOVIE_QUERY)
-      .in('movie_id', movieIds);
-
-    if (moviesError) {
-      console.error('Error fetching movies:', moviesError);
-      return NextResponse.json(
-        { error: 'Database error', details: moviesError.message },
-        { status: 500 }
-      );
-    }
-
-    // Calculate final recommendations with improved scoring
-    const rawScores = movies?.map(movie => {
-      const ratings = movie.ratings || [];
-      const totalRatings = ratings.length;
-      const averageRating = totalRatings > 0
-        ? ratings.reduce((sum, r) => sum + (r.rating || 0), 0) / totalRatings
-        : 0;
-
-      const movieScore = movieScores.get(movie.movie_id)!;
-
-      // Combine collaborative filtering score with average rating
-      const collaborativeScore = movieScore.score / movieScore.count;
-      const popularityWeight = Math.min(totalRatings / 100, 1); // Cap at 100 ratings
-      const score = (collaborativeScore * 0.7) + (averageRating * 0.3 * popularityWeight);
-
-      return {
-        title: movie.title,
-        rawScore: score,
-        movieId: movie.movie_id,
-        averageRating,
-        totalRatings,
-        genres: movie.genres?.split('|').map((g: string) => g.trim()) || []
-      };
-    }) || [];
-
-    // Find min and max scores for normalization
-    const scores = rawScores.map(m => m.rawScore);
-    const minScore = Math.min(...scores);
-    const maxScore = Math.max(...scores);
-
-    // Normalize scores and sort
-    const recommendations = rawScores
-      .map(movie => ({
-        ...movie,
-        score: Number(normalizeScore(movie.rawScore, minScore, maxScore).toFixed(2))
-      }))
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 10);
-
-    return NextResponse.json({ recommendations });
 
   } catch (error) {
-    console.error('Unexpected error in API route:', error);
+    console.error('Error in recommendations:', error);
     return NextResponse.json(
       {
-        error: 'Internal Server Error',
+        error: 'Internal server error',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }

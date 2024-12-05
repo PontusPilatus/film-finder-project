@@ -1,4 +1,4 @@
-import { FiTarget, FiSearch, FiStar, FiMail, FiLinkedin } from 'react-icons/fi';
+import { FiTarget, FiSearch, FiStar, FiMail, FiLinkedin, FiGithub, FiCode, FiCpu, FiDatabase, FiLayers } from 'react-icons/fi';
 
 export default function About() {
   return (
@@ -7,7 +7,7 @@ export default function About() {
       <section className="relative pb-12 overflow-hidden">
         <div className="absolute inset-0 hero-gradient opacity-40"></div>
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-background-dark/5 to-transparent"></div>
-        
+
         <div className="relative container-wrapper">
           <div className="grid lg:grid-cols-1 gap-8 lg:gap-12 items-center pt-8 sm:pt-12 md:pt-16">
             <div className="space-y-6 text-center fade-in-up">
@@ -24,16 +24,17 @@ export default function About() {
         </div>
       </section>
 
-      {/* Mission Section */}
+      {/* Enhanced Mission Section */}
       <section className="container-wrapper py-16">
         <div className="card backdrop-blur-lg">
           <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600 mb-6">
             Our Mission
           </h2>
           <p className="text-gray-300 leading-relaxed text-lg">
-            Film Finder was created with a simple goal: to help movie enthusiasts discover and explore 
-            the vast world of cinema. We believe that everyone deserves to find films that move, 
-            inspire, and entertain them.
+            Film Finder was created with a simple goal: to help movie enthusiasts discover and explore
+            the vast world of cinema. We believe that everyone deserves to find films that move,
+            inspire, and entertain them. Using advanced AI technology and comprehensive movie data,
+            we provide personalized recommendations that go beyond the obvious choices.
           </p>
         </div>
       </section>
@@ -41,7 +42,7 @@ export default function About() {
       {/* Features Section */}
       <section className="container-wrapper py-16 max-w-6xl">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="card group cursor-pointer">
+          <div className="card group">
             <div className="relative space-y-4">
               <div className="w-12 h-12 mx-auto rounded-full bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                 <FiTarget className="w-6 h-6 text-blue-400" />
@@ -55,7 +56,7 @@ export default function About() {
             </div>
           </div>
 
-          <div className="card group cursor-pointer">
+          <div className="card group">
             <div className="relative space-y-4">
               <div className="w-12 h-12 mx-auto rounded-full bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                 <FiSearch className="w-6 h-6 text-blue-400" />
@@ -69,7 +70,7 @@ export default function About() {
             </div>
           </div>
 
-          <div className="card group cursor-pointer">
+          <div className="card group">
             <div className="relative space-y-4">
               <div className="w-12 h-12 mx-auto rounded-full bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                 <FiStar className="w-6 h-6 text-blue-400" />
@@ -82,6 +83,75 @@ export default function About() {
               </p>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section className="container-wrapper py-16 max-w-6xl">
+        <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600 mb-8 text-center">
+          How It Works
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {[
+            {
+              number: "01",
+              title: "Create Account",
+              description: "Sign up for free to start your movie journey"
+            },
+            {
+              number: "02",
+              title: "Rate Movies",
+              description: "Rate movies you've watched to improve recommendations"
+            },
+            {
+              number: "03",
+              title: "Get Recommendations",
+              description: "Receive personalized movie suggestions"
+            },
+            {
+              number: "04",
+              title: "Discover",
+              description: "Explore new films and expand your horizons"
+            }
+          ].map((step, index) => (
+            <div key={index} className="card relative group">
+              <div className="space-y-4">
+                <div className="text-5xl font-bold text-blue-400/20 group-hover:text-blue-400/30 transition-colors">
+                  {step.number}
+                </div>
+                <h3 className="text-xl font-semibold text-gray-100">
+                  {step.title}
+                </h3>
+                <p className="text-gray-400">
+                  {step.description}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Tech Stack Section */}
+      <section className="container-wrapper py-16 max-w-6xl">
+        <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600 mb-8 text-center">
+          Built With Modern Tech
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {[
+            { icon: FiCode, label: "Next.js" },
+            { icon: FiDatabase, label: "PostgreSQL" },
+            { icon: FiCpu, label: "AI Models" },
+            { icon: FiLayers, label: "TailwindCSS" },
+          ].map((tech, index) => (
+            <div key={index} className="card group">
+              <div className="space-y-3 text-center">
+                <div className="w-12 h-12 mx-auto rounded-full bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <tech.icon className="w-6 h-6 text-blue-400" />
+                </div>
+                <p className="text-gray-300 font-medium">{tech.label}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -99,7 +169,7 @@ export default function About() {
               <h3 className="text-2xl font-semibold text-gray-100">Pontus Paulsson</h3>
               <p className="text-gray-300 text-lg">Full Stack Developer</p>
               <div className="flex flex-wrap gap-4 justify-center md:justify-start">
-                <a 
+                <a
                   href="https://www.linkedin.com/in/paulssonpontus/"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -108,6 +178,15 @@ export default function About() {
                   <FiLinkedin className="w-5 h-5" />
                   <span>Connect on LinkedIn</span>
                 </a>
+                <a
+                  href="https://github.com/PontusPilatus"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-all duration-200"
+                >
+                  <FiGithub className="w-5 h-5" />
+                  <span>View GitHub</span>
+                </a>
               </div>
             </div>
           </div>
@@ -115,4 +194,4 @@ export default function About() {
       </section>
     </div>
   );
-} 
+}
