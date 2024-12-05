@@ -29,11 +29,24 @@ export default function Movies() {
 
   useEffect(() => {
     fetchFilterOptions();
-  }, []);
+
+    // Get genres from URL parameters when page loads
+    const urlParams = new URLSearchParams(window.location.search);
+    const genresParam = urlParams.get('genres');
+    
+    if (genresParam) {
+      const genresList = genresParam.split(',');
+      setFilters(prev => ({
+        ...prev,
+        genres: genresList
+      }));
+    }
+  }, []); // Run once when component mounts
 
   useEffect(() => {
+    if (!availableGenres.length) return; // Don't fetch until we have genres loaded
     fetchMovies();
-  }, [currentPage, filters, sortBy, searchQuery]);
+  }, [currentPage, filters, sortBy, searchQuery, availableGenres]);
 
   async function fetchFilterOptions() {
     // Get unique years
@@ -86,16 +99,20 @@ export default function Movies() {
         query = query.lte('year', filters.yearTo);
       }
       if (filters.genres && filters.genres.length > 0) {
-        // Match all selected genres (AND condition)
-        filters.genres.forEach(genre => {
-          query = query.ilike('genres', `%${genre}%`);
+        console.log('Filtering for genres:', filters.genres);
+        const genreConditions = filters.genres.map(genre => {
+          const condition = `genres.ilike.%|${genre}|%`;
+          console.log('Genre condition:', condition);
+          return condition;
         });
+        query = query.or(genreConditions.join(','));
       }
       if (searchQuery) {
         query = query.ilike('title', `%${searchQuery}%`);
       }
 
       const { data: movies, error } = await query;
+      console.log('Query results:', movies?.length, 'movies found');
 
       if (error) throw error;
       if (!movies) return;

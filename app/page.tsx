@@ -39,23 +39,23 @@ export default function Home() {
               {[
                 {
                   icon: FiSearch,
-                  title: 'Discover',
-                  description: 'Find new movies across all genres'
+                  title: 'Smart Search',
+                  description: 'Find movies with advanced filtering'
                 },
                 {
                   icon: FiStar,
-                  title: 'Rate & Review',
-                  description: 'Share your movie experiences'
+                  title: 'Rate Movies',
+                  description: 'Share your ratings and reviews'
                 },
                 {
                   icon: FiBookmark,
-                  title: 'Track',
-                  description: 'Build your personal watchlist'
+                  title: 'Watchlist',
+                  description: 'Save movies to watch later'
                 },
                 {
                   icon: FiFilm,
-                  title: 'Explore',
-                  description: 'Get personalized recommendations'
+                  title: 'Discover',
+                  description: 'Get AI-powered recommendations'
                 }
               ].map((feature) => (
                 <div 
@@ -87,20 +87,39 @@ export default function Home() {
         <div className="text-center space-y-12">
           <div className="space-y-3">
             <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">
-              Popular Categories
+              Explore Movies By Genre
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto">
-              Explore our curated collection of movies across different genres
+              Discover films across every genre, from timeless classics to modern masterpieces
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { name: 'Action', icon: FiFilm, description: 'Epic adventures and thrilling moments' },
-              { name: 'Comedy', icon: FiSmile, description: 'Laugh-out-loud entertainment' },
-              { name: 'Drama', icon: FiHeart, description: 'Compelling stories that move you' }
-            ].map(({ name, icon: Icon, description }) => (
-              <div key={name} className="card group cursor-pointer">
+              { 
+                name: 'Action & Adventure', 
+                icon: FiFilm, 
+                genres: ['Action', 'Adventure'],
+                description: 'Epic adventures and thrilling sequences' 
+              },
+              { 
+                name: 'Drama & Romance', 
+                icon: FiHeart, 
+                genres: ['Drama', 'Romance'],
+                description: 'Moving stories that touch the heart' 
+              },
+              { 
+                name: 'Sci-Fi & Fantasy', 
+                icon: FiSmile, 
+                genres: ['Science Fiction', 'Fantasy'],
+                description: 'Journey to incredible new worlds' 
+              }
+            ].map(({ name, icon: Icon, genres, description }) => (
+              <Link 
+                href={`/movies?genres=${genres.join(',')}`}
+                key={name} 
+                className="card group hover:scale-[1.02] transition-transform"
+              >
                 <div className="relative space-y-4">
                   <div className="w-12 h-12 mx-auto rounded-full bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     <Icon className="w-6 h-6 text-blue-400" />
@@ -112,7 +131,7 @@ export default function Home() {
                     {description}
                   </p>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
