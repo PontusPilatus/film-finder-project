@@ -11,9 +11,10 @@ interface MovieCardProps {
   onGenreClick?: (genre: string) => void;
   showDelete?: boolean;
   onRatingDelete?: (movieId: string) => void;
+  onDelete?: (movieId: string) => void;
 }
 
-const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, onRatingDelete }) => {
+const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, onRatingDelete, onDelete }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userId, setUserId] = useState<number | null>(null);
   const [isInWatchlist, setIsInWatchlist] = useState(false);
@@ -127,6 +128,13 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, 
     }
   };
 
+  const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (onDelete) {
+      onDelete(movie.id);
+    }
+  };
+
   const genres: string[] = Array.isArray(movie.genres)
     ? movie.genres
     : (movie.genres as string)?.split('|') || [];
@@ -170,27 +178,40 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, 
             )}
           </div>
 
-          {/* Watchlist Button */}
-          {isLoggedIn && (
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                handleWatchlistClick(e);
-              }}
-              className={`ml-4 p-2 rounded-full transition-all duration-200 ${isInWatchlist
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white'
-                }`}
-              disabled={isLoading}
-              title={isInWatchlist ? "Remove from watchlist" : "Add to watchlist"}
-            >
-              {isInWatchlist ? (
-                <FiCheck className="w-5 h-5" />
-              ) : (
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2">
+            {/* Watchlist Button */}
+            {isLoggedIn && !showDelete && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleWatchlistClick(e);
+                }}
+                className={`p-2 rounded-full transition-all duration-200 ${isInWatchlist
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white'
+                  }`}
+                disabled={isLoading}
+                title={isInWatchlist ? "Remove from watchlist" : "Add to watchlist"}
+              >
+                {isInWatchlist ? (
+                  <FiCheck className="w-5 h-5" />
+                ) : (
+                  <FiBookmark className="w-5 h-5" />
+                )}
+              </button>
+            )}
+            {/* Delete Button */}
+            {showDelete && onDelete && (
+              <button
+                onClick={handleDelete}
+                className="p-2 rounded-full bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all duration-200"
+                title="Remove from watchlist"
+              >
                 <FiBookmark className="w-5 h-5" />
-              )}
-            </button>
-          )}
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="mt-4 flex items-center justify-between">

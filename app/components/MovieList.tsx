@@ -6,13 +6,15 @@ interface MovieListProps {
   onGenreClick?: (genre: string) => void;
   showDelete?: boolean;
   onRatingDelete?: () => void;
+  onDelete?: (movieId: string) => void;
 }
 
 export default function MovieList({ 
   movies, 
   onGenreClick,
   showDelete,
-  onRatingDelete 
+  onRatingDelete,
+  onDelete
 }: MovieListProps) {
   return (
     <div className="space-y-4">
@@ -23,6 +25,7 @@ export default function MovieList({
           onGenreClick={onGenreClick}
           showDelete={showDelete}
           onRatingDelete={onRatingDelete}
+          onDelete={onDelete}
         />
       ))}
     </div>

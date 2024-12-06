@@ -152,7 +152,7 @@ export default function WatchlistPage() {
             <MovieList 
               movies={watchlistItems.map(item => item.movie)}
               showDelete={true}
-              onRatingDelete={async (movieId) => {
+              onDelete={async (movieId) => {
                 try {
                   if (!userId) return;
                   
