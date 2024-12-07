@@ -1,5 +1,8 @@
 export interface Recommendation {
-  movieId: string;
+  movieId: number;
+  title: string;
   score: number;
-  similarMovies: string[];
+  genres?: string[];
+  averageRating?: number;
+  totalRatings?: number;
 } 

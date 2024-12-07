@@ -1,5 +1,5 @@
 export interface Movie {
-  id: string;
+  movie_id: number;
   title: string;
   overview: string;
   posterPath: string;
@@ -12,7 +12,6 @@ export interface Movie {
 
 export interface MovieDetails extends Movie {
   runtime: number;
-  genres: string[];
   budget: number;
   revenue: number;
 } 
