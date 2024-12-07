@@ -4,6 +4,7 @@ import { FiChevronDown } from 'react-icons/fi';
 interface Option {
   value: string;
   label: string;
+  isRating?: boolean;
 }
 
 interface CustomSelectProps {
@@ -12,6 +13,7 @@ interface CustomSelectProps {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  isRating?: boolean;
 }
 
 export default function CustomSelect({ 
@@ -19,7 +21,8 @@ export default function CustomSelect({
   value, 
   onChange, 
   placeholder = 'Select...', 
-  className = ''
+  className = '',
+  isRating = false
 }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -41,7 +44,9 @@ export default function CustomSelect({
     <div className={`relative ${className}`} ref={dropdownRef}>
       <button
         type="button"
-        className="select-field w-full text-left flex items-center justify-between"
+        className={`select-field w-full text-left flex items-center justify-between ${
+          isRating && selectedOption?.value ? 'text-yellow-400' : ''
+        }`}
         onClick={() => setIsOpen(!isOpen)}
       >
         <span className="truncate">
@@ -58,8 +63,11 @@ export default function CustomSelect({
             {options.map((option) => (
               <button
                 key={option.value}
-                className={`w-full px-4 py-2 text-left hover:bg-white/[0.03] transition-colors duration-150
-                          ${option.value === value ? 'bg-blue-500/20 text-white' : 'text-gray-300'}`}
+                className={`w-full text-left px-4 py-2 hover:bg-white/[0.03] transition-colors ${
+                  option.value === value 
+                    ? isRating ? 'text-yellow-400' : 'text-blue-400'
+                    : option.value === '' ? 'text-gray-400' : isRating ? 'text-yellow-400/50' : 'text-gray-400'
+                }`}
                 onClick={() => {
                   onChange(option.value);
                   setIsOpen(false);

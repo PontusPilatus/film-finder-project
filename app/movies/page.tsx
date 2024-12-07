@@ -55,16 +55,9 @@ export default function Movies() {
   }, [currentPage, filters, sortBy, searchQuery, availableGenres]);
 
   async function fetchFilterOptions() {
-    // Get unique years
-    const { data: years } = await supabase
-      .from('movies')
-      .select('year')
-      .order('year')
-
-    if (years) {
-      const uniqueYears = Array.from(new Set(years.map(m => m.year))).filter(Boolean)
-      setAvailableYears(uniqueYears)
-    }
+    // Generate years from 1900 to 2024 in descending order
+    const years = Array.from({ length: 2024 - 1900 + 1 }, (_, i) => 2024 - i);
+    setAvailableYears(years);
 
     // Get unique genres
     const { data: genres } = await supabase

@@ -4,6 +4,7 @@ export interface Movie {
   overview: string;
   posterPath: string;
   releaseDate: string;
+  year?: string;
   voteAverage: number;
   genres: string[];
   supabaseRatingAverage: number | null;
