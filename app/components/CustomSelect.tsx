@@ -66,14 +66,16 @@ export default function CustomSelect({
                 className={`w-full text-left px-4 py-2 hover:bg-white/[0.03] transition-colors ${
                   option.value === value 
                     ? isRating ? 'text-yellow-400' : 'text-blue-400'
-                    : option.value === '' ? 'text-gray-400' : isRating ? 'text-yellow-400/50' : 'text-gray-400'
+                    : option.value === '' ? 'text-gray-400' : isRating ? 'text-gray-400' : 'text-gray-400'
                 }`}
                 onClick={() => {
                   onChange(option.value);
                   setIsOpen(false);
                 }}
               >
-                {option.label}
+                {option.value === value && isRating 
+                  ? option.label.replace(/☆/g, '★')
+                  : option.label}
               </button>
             ))}
           </div>

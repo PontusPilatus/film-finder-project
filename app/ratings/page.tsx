@@ -33,6 +33,8 @@ export default function RatingsPage() {
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [availableYears, setAvailableYears] = useState<number[]>([]);
   const [availableGenres, setAvailableGenres] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
   const router = useRouter();
 
   useEffect(() => {
@@ -42,7 +44,7 @@ export default function RatingsPage() {
   useEffect(() => {
     if (userRatings.length > 0) {
       // Extract available years and genres from ratings
-      const years = Array.from(new Set(userRatings.map(r => 
+      const years = Array.from(new Set(userRatings.map(r =>
         parseInt(r.movie.year || r.movie.releaseDate)
       ))).filter(Boolean).sort();
       setAvailableYears(years);
@@ -69,7 +71,7 @@ export default function RatingsPage() {
         filtered = filtered.filter(r => parseInt(r.movie.year || r.movie.releaseDate) <= filters.yearTo!);
       }
       if (filters.genres && filters.genres.length > 0) {
-        filtered = filtered.filter(r => 
+        filtered = filtered.filter(r =>
           filters.genres!.every(genre => r.movie.genres.includes(genre))
         );
       }
@@ -99,7 +101,7 @@ export default function RatingsPage() {
   async function checkUser() {
     try {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
-      
+
       if (authError) {
         console.error('Auth error:', authError);
         router.push('/login');
@@ -211,7 +213,7 @@ export default function RatingsPage() {
       const newGenres = currentGenres.includes(genre)
         ? currentGenres.filter(g => g !== genre)
         : [...currentGenres, genre];
-      
+
       return {
         ...prev,
         genres: newGenres.length > 0 ? newGenres : undefined
@@ -233,24 +235,27 @@ export default function RatingsPage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative py-16 overflow-hidden">
+      <section className="relative py-20 overflow-visible">
+        {/* Background Gradients */}
         <div className="absolute inset-0 bg-gradient-to-b from-blue-900/20 via-background-dark/5 to-transparent"></div>
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-background-dark/10 to-transparent animate-pulse-slow"></div>
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent"></div>
 
+        {/* Content */}
         <div className="relative container-wrapper">
           <div className="max-w-2xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              <span className="hero-text inline-block">
-                Your Ratings
-              </span>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 relative z-10 leading-tight">
+              <span className="hero-text inline-block align-baseline leading-tight">Your Ratings</span>
             </h1>
-            <p className="text-xl text-gray-300/90 mb-8 max-w-xl mx-auto">
+            {/* Add extra margin to move the <p> down */}
+            <p className="text-xl text-gray-300/90 mb-8 mt-4 max-w-xl mx-auto relative z-0 leading-normal">
               Manage and view all your movie ratings
             </p>
           </div>
         </div>
       </section>
+
+
 
       {/* Ratings Content */}
       <section className="container-wrapper -mt-8 relative z-10 mb-16">
@@ -272,11 +277,11 @@ export default function RatingsPage() {
                         isRating={true}
                         options={[
                           { value: '', label: 'From' },
-                          { value: '1', label: '★' },
-                          { value: '2', label: '★★' },
-                          { value: '3', label: '★★★' },
-                          { value: '4', label: '★★★★' },
-                          { value: '5', label: '★★★★★' }
+                          { value: '1', label: '☆' },
+                          { value: '2', label: '☆☆' },
+                          { value: '3', label: '☆☆☆' },
+                          { value: '4', label: '☆☆☆☆' },
+                          { value: '5', label: '☆☆☆☆☆' }
                         ]}
                       />
 
@@ -289,11 +294,11 @@ export default function RatingsPage() {
                         isRating={true}
                         options={[
                           { value: '', label: 'To' },
-                          { value: '1', label: '★' },
-                          { value: '2', label: '★★' },
-                          { value: '3', label: '★★★' },
-                          { value: '4', label: '★★★★' },
-                          { value: '5', label: '★★★★★' }
+                          { value: '1', label: '☆' },
+                          { value: '2', label: '☆☆' },
+                          { value: '3', label: '☆☆☆' },
+                          { value: '4', label: '☆☆☆☆' },
+                          { value: '5', label: '☆☆☆☆☆' }
                         ]}
                       />
                     </div>
@@ -359,11 +364,10 @@ export default function RatingsPage() {
                       <button
                         key={genre}
                         onClick={() => handleGenreClick(genre)}
-                        className={`px-4 py-2 rounded-xl text-sm transition-all duration-300 hover:scale-105 ${
-                          filters.genres?.includes(genre)
-                            ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25'
-                            : 'glass-card hover:bg-white/[0.03] text-blue-400'
-                        }`}
+                        className={`px-4 py-2 rounded-xl text-sm transition-all duration-300 hover:scale-105 ${filters.genres?.includes(genre)
+                          ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25'
+                          : 'glass-card hover:bg-white/[0.03] text-blue-400'
+                          }`}
                       >
                         {genre}
                       </button>
@@ -455,18 +459,53 @@ export default function RatingsPage() {
               </div>
 
               {userRatings.length > 0 ? (
-                <MovieList 
-                  movies={filteredRatings.map(r => ({
-                    ...r.movie,
-                    voteAverage: r.rating
-                  }))}
-                  showDelete={true}
-                  onRatingDelete={async () => {
-                    if (userId) {
-                      await fetchUserRatings(userId);
-                    }
-                  }}
-                />
+                <>
+                  <MovieList
+                    movies={filteredRatings
+                      .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+                      .map(r => ({
+                        ...r.movie,
+                        voteAverage: r.rating
+                      }))}
+                    showDelete={true}
+                    onRatingDelete={async () => {
+                      if (userId) {
+                        await fetchUserRatings(userId);
+                      }
+                    }}
+                  />
+
+                  {/* Pagination Controls */}
+                  {filteredRatings.length > ITEMS_PER_PAGE && (
+                    <div className="flex justify-center items-center gap-2 mt-8">
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                        className={`px-4 py-2 rounded-xl text-sm transition-all duration-300 ${currentPage === 1
+                          ? 'opacity-50 cursor-not-allowed'
+                          : 'hover:scale-105'
+                          } glass-card hover:bg-white/[0.03] text-blue-400`}
+                      >
+                        Previous
+                      </button>
+
+                      <span className="text-gray-400">
+                        Page {currentPage} of {Math.ceil(filteredRatings.length / ITEMS_PER_PAGE)}
+                      </span>
+
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.min(Math.ceil(filteredRatings.length / ITEMS_PER_PAGE), prev + 1))}
+                        disabled={currentPage >= Math.ceil(filteredRatings.length / ITEMS_PER_PAGE)}
+                        className={`px-4 py-2 rounded-xl text-sm transition-all duration-300 ${currentPage >= Math.ceil(filteredRatings.length / ITEMS_PER_PAGE)
+                          ? 'opacity-50 cursor-not-allowed'
+                          : 'hover:scale-105'
+                          } glass-card hover:bg-white/[0.03] text-blue-400`}
+                      >
+                        Next
+                      </button>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="text-center py-16 space-y-6">
                   <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-blue-500/10 to-purple-500/10 
