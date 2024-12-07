@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { Movie } from '../../types/movie';
+import { Movie } from '../types/movie';
 import Link from 'next/link';
 import RatingComponent from './RatingComponent';
 import { supabase } from '../lib/supabase';
@@ -140,14 +140,14 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, 
     : (movie.genres as string)?.split('|') || [];
 
   return (
-    <Link href={`/movies/${movie.id}`} className="movie-card block relative">
-      <div className="card hover:border-primary group transition-all duration-200">
-        <div className="flex justify-between items-start">
-          <div className="space-y-2 flex-grow">
-            <h3 className="text-xl font-semibold text-gray-100 group-hover:text-primary transition-colors">
+    <Link href={`/movies/${movie.id}`} className="block relative group">
+      <div className="glass-card p-6 transition-all duration-300 hover:scale-[1.02]">
+        <div className="flex justify-between items-start gap-4">
+          <div className="space-y-4 flex-grow">
+            <h3 className="text-xl font-bold text-gray-100 group-hover:text-blue-400 transition-colors">
               {movie.title.replace(/\s*\(\d{4}\)$/, '')}
             </h3>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {movie.releaseDate && (
                 <div className="text-sm text-gray-400">
                   <span className="text-gray-500">Released:</span> {movie.releaseDate}
@@ -162,8 +162,9 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, 
                         e.preventDefault();
                         onGenreClick?.(genre.trim());
                       }}
-                      className="px-2 py-1 text-xs rounded-full bg-blue-900/50 text-blue-200 
-                               hover:bg-blue-800 transition-colors cursor-pointer"
+                      className="px-3 py-1.5 text-sm rounded-xl bg-blue-500/10 text-blue-400 
+                               hover:bg-blue-500 hover:text-white transition-all duration-300
+                               hover:scale-105"
                     >
                       {genre.trim()}
                     </button>
@@ -172,7 +173,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, 
               )}
             </div>
             {movie.overview && (
-              <p className="text-gray-300 line-clamp-2">
+              <p className="text-gray-400 line-clamp-2 leading-relaxed group-hover:text-gray-300 transition-colors">
                 {movie.overview}
               </p>
             )}
@@ -187,10 +188,11 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, 
                   e.preventDefault();
                   handleWatchlistClick(e);
                 }}
-                className={`p-2 rounded-full transition-all duration-200 ${isInWatchlist
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white'
-                  }`}
+                className={`p-2.5 rounded-xl transition-all duration-300 hover:scale-110 ${
+                  isInWatchlist
+                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25'
+                    : 'glass-card hover:bg-white/[0.03] text-blue-400'
+                }`}
                 disabled={isLoading}
                 title={isInWatchlist ? "Remove from watchlist" : "Add to watchlist"}
               >
@@ -205,7 +207,8 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, 
             {showDelete && onDelete && (
               <button
                 onClick={handleDelete}
-                className="p-2 rounded-full bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all duration-200"
+                className="p-2.5 rounded-xl glass-card hover:bg-white/[0.03] text-red-400 
+                         hover:text-red-300 transition-all duration-300 hover:scale-110"
                 title="Remove from watchlist"
               >
                 <FiBookmark className="w-5 h-5" />
@@ -214,9 +217,9 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, 
           </div>
         </div>
 
-        <div className="mt-4 flex items-center justify-between">
+        <div className="mt-6 flex items-center justify-between">
           {isLoggedIn && (
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-2">
               <span className="text-sm text-gray-400">My Rating</span>
               <RatingComponent
                 movieId={movie.id}
@@ -228,9 +231,12 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, 
           {movie.supabaseRatingAverage && typeof movie.supabaseRatingAverage === 'number' && (
             <div className={`text-right ${!isLoggedIn ? 'ml-auto' : ''}`}>
               <div className="text-sm text-gray-400">Average Rating</div>
-              <div className="text-xl font-bold text-primary">
-                {movie.supabaseRatingAverage.toFixed(1)}
-                <span className="text-sm text-gray-400 ml-1">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 
+                               bg-clip-text text-transparent">
+                  {movie.supabaseRatingAverage.toFixed(1)}
+                </span>
+                <span className="text-sm text-gray-400">
                   ({movie.totalRatings} {movie.totalRatings === 1 ? 'rating' : 'ratings'})
                 </span>
               </div>

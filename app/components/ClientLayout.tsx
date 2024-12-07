@@ -1,71 +1,56 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
-import { useRouter } from 'next/navigation';
 
 export default function ClientLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
+  const reconnectAttempts = useRef(0);
+  const maxReconnectAttempts = 3;
 
   useEffect(() => {
-    const checkSession = async () => {
-      try {
-        console.log('Checking auth session...');
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Error checking session:', error.message);
-          return;
-        }
+    let authSubscription: any;
+    let channel: any;
 
-        if (session) {
-          console.log('Session found:', session.user.email);
-        } else {
-          console.log('No session found');
+    const setupConnections = () => {
+      // Setup auth monitoring
+      const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (!session && reconnectAttempts.current < maxReconnectAttempts) {
+          console.log(`Attempting to reconnect (${reconnectAttempts.current + 1}/${maxReconnectAttempts})...`);
+          reconnectAttempts.current += 1;
+          supabase.auth.getSession().catch(console.error);
         }
-      } catch (error) {
-        console.error('Error in auth check:', error);
-      } finally {
-        setIsLoading(false);
-      }
+      });
+      authSubscription = data.subscription;
+
+      // Setup realtime monitoring
+      channel = supabase.channel('system')
+        .on('system', { event: '*' }, (payload) => {
+          if (payload.event === 'disconnected') {
+            console.log('Disconnected from Supabase, attempting to reconnect...');
+            channel?.unsubscribe();
+            setTimeout(setupConnections, 1000);
+          }
+        })
+        .subscribe();
     };
 
-    // Set up auth state change listener
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session?.user?.email);
-      
-      if (event === 'SIGNED_OUT') {
-        const protectedRoutes = ['/recommendations', '/ratings', '/watchlist', '/profile'];
-        if (protectedRoutes.some(route => window.location.pathname.startsWith(route))) {
-          router.push('/login');
-        }
-      }
-    });
+    setupConnections();
 
-    checkSession();
-
+    // Cleanup function
     return () => {
-      subscription.unsubscribe();
+      authSubscription?.unsubscribe();
+      channel?.unsubscribe();
+      reconnectAttempts.current = 0;
     };
-  }, [router]);
+  }, []);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-400"></div>
-          <p className="text-gray-400">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  return <>{children}</>;
+  return (
+    <div className="min-h-screen">
+      {children}
+    </div>
+  );
 } 

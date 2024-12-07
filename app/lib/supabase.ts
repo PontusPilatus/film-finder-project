@@ -11,9 +11,7 @@ if (!supabaseAnonKey) {
   throw new Error('Missing environment variable: NEXT_PUBLIC_SUPABASE_ANON_KEY');
 }
 
-// For debugging purposes
-console.log('Initializing Supabase client with URL:', supabaseUrl);
-
+// Create Supabase client
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
@@ -21,5 +19,11 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: true,
     storageKey: 'film-finder-auth',
     storage: typeof window !== 'undefined' ? window.localStorage : undefined
+  },
+  db: {
+    schema: 'public'
+  },
+  global: {
+    headers: { 'x-application-name': 'film-finder' }
   }
 }); 

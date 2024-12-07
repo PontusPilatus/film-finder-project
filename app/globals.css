@@ -5,14 +5,53 @@
 :root {
   --primary-blue: #4287f5;
   --primary-hover: #3476e3;
-  --background-dark: #0a1929;
+  --background-dark: #0f172a;
   --background-card: rgba(16, 34, 65, 0.4);
-  --header-bg: rgba(10, 25, 41, 0.8);
+  --header-bg: rgba(10, 25, 41, 0.9);
+  --glow-blue: #60a5fa;
+  --glow-purple: #8b5cf6;
 }
 
 @layer base {
   body {
     @apply bg-gradient-to-br from-[#0a1929] via-[#162a46] to-[#1a1f35] text-gray-100 min-h-screen;
+    background-attachment: fixed;
+  }
+
+  ::selection {
+    @apply bg-blue-500/30 text-white;
+  }
+
+  :root {
+    --background: #0f172a;
+  }
+
+  select {
+    @apply bg-background text-gray-300 border-white/5;
+  }
+
+  select option {
+    @apply bg-background text-gray-300 px-4 py-2;
+  }
+
+  select:not([size]) {
+    background-position: right 0.5rem center !important;
+    padding-right: 2.5rem !important;
+  }
+
+  select:not([multiple]) {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+  }
+
+  /* Constrain dropdown height */
+  select:focus {
+    max-height: 300px !important;
+  }
+
+  select option:checked {
+    @apply bg-blue-500/20 text-white;
   }
 }
 
@@ -25,9 +64,10 @@
   /* Header Styles */
   .header {
     @apply relative z-50 
-           bg-[var(--header-bg)] backdrop-blur-md 
+           bg-[var(--header-bg)] backdrop-blur-xl
            border-b border-white/10 
-           transition-all duration-200;
+           transition-all duration-300
+           supports-[backdrop-filter]:bg-opacity-50;
   }
 
   .header-content {
@@ -35,53 +75,76 @@
   }
 
   .nav-link {
-    @apply text-gray-300 hover:text-white transition-colors duration-200;
+    @apply text-gray-300 hover:text-white relative
+           after:absolute after:bottom-0 after:left-0 
+           after:w-0 after:h-0.5 after:bg-blue-500
+           after:transition-all after:duration-300
+           hover:after:w-full;
   }
 
   /* Button Styles */
   .btn-primary {
-    @apply px-6 py-3 bg-[var(--primary-blue)] hover:bg-[var(--primary-hover)] text-white rounded-lg 
-           transition-all duration-200 font-medium shadow-lg hover:shadow-blue-500/25;
+    @apply px-6 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 
+           hover:from-blue-600 hover:to-blue-700 text-white transition-all duration-300 
+           shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40;
   }
 
   .btn-secondary {
-    @apply px-6 py-3 bg-transparent border border-white/20 text-white rounded-lg
-           hover:bg-white/10 transition-all duration-200 backdrop-blur-sm;
+    @apply px-6 py-3 rounded-xl text-gray-300 hover:text-white 
+           bg-white/5 hover:bg-white/10 transition-all duration-300;
   }
 
   /* Card Styles */
   .card {
-    @apply bg-[var(--background-card)] rounded-xl shadow-lg p-8
-           backdrop-blur-sm border border-white/10
-           hover:border-white/20 transition-all duration-300
-           hover:shadow-blue-500/10;
+    @apply bg-[var(--background-card)] rounded-xl p-8
+           backdrop-blur-xl border border-white/10
+           transition-all duration-300
+           hover:border-white/20
+           shadow-[0_8px_30px_rgba(0,0,0,0.12)]
+           hover:shadow-[0_8px_30px_rgba(66,135,245,0.12)]
+           hover:translate-y-[-2px];
   }
 
   /* Hero Section */
   .hero-gradient {
-    @apply bg-gradient-to-br from-blue-600/20 via-purple-600/20 to-transparent;
+    @apply bg-gradient-to-br from-blue-600/20 via-purple-600/20 to-transparent
+           relative overflow-hidden;
+  }
+
+  .hero-gradient::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10
+           animate-pulse;
   }
 
   .hero-text {
-    @apply text-4xl sm:text-6xl md:text-7xl font-bold text-transparent bg-clip-text
-           bg-gradient-to-r from-blue-400 to-blue-600;
+    @apply text-4xl sm:text-6xl md:text-7xl font-bold
+           bg-clip-text text-transparent
+           bg-gradient-to-r from-white via-blue-400 to-blue-600
+           animate-gradient-x;
   }
 
   .hero-subtitle {
-    @apply text-xl sm:text-2xl text-gray-300 max-w-2xl mx-auto mt-6;
+    @apply text-xl sm:text-2xl text-gray-300/90 max-w-2xl mx-auto mt-6
+           leading-relaxed;
   }
 
   /* Form Elements */
   .input-field {
-    @apply w-full px-4 py-3 bg-[var(--background-card)] border border-white/10 text-gray-100 
-           rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent 
-           outline-none transition-all duration-200 placeholder-gray-500
-           backdrop-blur-sm;
+    @apply w-full px-4 py-3 bg-[var(--background-card)] 
+           border border-white/10 text-gray-100 
+           rounded-lg outline-none transition-all duration-300
+           placeholder-gray-500/70 backdrop-blur-xl
+           focus:border-blue-500/50
+           focus:shadow-[0_0_20px_rgba(66,135,245,0.1)]
+           hover:border-white/20;
   }
 
   /* Footer */
   .footer {
-    @apply bg-[var(--header-bg)] backdrop-blur-sm border-t border-white/10 py-6;
+    @apply bg-[var(--header-bg)] backdrop-blur-xl py-8
+           border-t border-white/10
+           supports-[backdrop-filter]:bg-opacity-50;
   }
 
   .footer-content {
@@ -93,9 +156,68 @@
     @apply animate-[fadeInUp_0.5s_ease-out_forwards];
   }
 
-  /* Add these styles to your existing globals.css */
+  .hover-glow {
+    @apply hover:shadow-[0_0_15px_rgba(59,130,246,0.5)];
+  }
+
   .dropdown-item {
-    @apply flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-blue-500/10 transition-colors w-full;
+    @apply flex items-center gap-3 px-4 py-2 text-sm text-gray-300 
+           hover:bg-blue-500/10 transition-all duration-200 w-full
+           hover:translate-x-1;
+  }
+
+  /* Glass Card Effect */
+  .glass-card {
+    @apply rounded-2xl bg-white/[0.02] backdrop-blur-3xl border border-white/5;
+  }
+
+  .hero-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600;
+  }
+
+  .hover-glow {
+    @apply hover:shadow-[0_0_15px_rgba(59,130,246,0.5)];
+  }
+
+  .input-field {
+    @apply w-full px-4 py-2.5 rounded-xl glass-card text-gray-300 
+           placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500/40 
+           transition-all duration-300 hover:bg-white/[0.03];
+  }
+
+  /* Select field container */
+  .select-container {
+    @apply relative;
+  }
+
+  .select-field {
+    @apply glass-card px-4 py-2.5 w-full transition-all duration-300
+           hover:bg-white/[0.03] focus:ring-2 focus:ring-blue-500/40
+           cursor-pointer appearance-none text-gray-300
+           bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik01Ljk5OTg5IDQuOTc2NzFMMTAuMTk1OSAwLjc4MDc2MUwxMS42MDk5IDIuMTk0NzZMNS45OTk4OSA3LjgwNDc2TDAuMzg5ODkzIDIuMTk0NzZMMS44MDM4OSAwLjc4MDc2MUw1Ljk5OTg5IDQuOTc2NzFaIiBmaWxsPSIjOTRBM0I4Ii8+Cjwvc3ZnPgo=')] 
+           bg-[length:12px_12px] bg-[right_16px_center] bg-no-repeat;
+    position: relative;
+  }
+
+  /* Style for select options */
+  .select-field option {
+    @apply px-4 py-2 cursor-pointer;
+    background: var(--background);
+  }
+
+  /* Custom scrollbar for dropdowns */
+  select::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  select::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+  }
+
+  select::-webkit-scrollbar-thumb {
+    background-color: rgba(59, 130, 246, 0.5);
+    border-radius: 3px;
   }
 }
 
@@ -111,9 +233,76 @@
   }
 }
 
+@keyframes gradient-x {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.6; }
+}
+
+.animate-gradient-x {
+  animation: gradient-x 15s ease infinite;
+  background-size: 200% 200%;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 4s ease-in-out infinite;
+}
+
 /* Responsive Design */
 @media (max-width: 640px) {
   .container-wrapper {
     @apply px-4;
   }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  @apply w-2;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-white/10 rounded-full
+         hover:bg-white/20 transition-colors duration-200;
+}
+
+@keyframes move-right {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes move-left {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fade-in-up 0.5s ease-out forwards;
 }

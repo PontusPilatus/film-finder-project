@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 import { useRouter } from 'next/navigation';
 import type { Movie } from '../../types/movie';
 import MovieList from '../components/MovieList';
-import { FiStar } from 'react-icons/fi';
+import { FiStar, FiInfo } from 'react-icons/fi';
 
 interface UserRating {
   movie: Movie;
@@ -33,7 +33,6 @@ export default function RatingsPage() {
       }
 
       if (user) {
-        console.log('User authenticated:', user.email);
         const { data: userProfile, error: profileError } = await supabase
           .from('users')
           .select('user_id')
@@ -46,14 +45,10 @@ export default function RatingsPage() {
         }
 
         if (userProfile) {
-          console.log('User profile found:', userProfile);
           setUserId(userProfile.user_id);
           await fetchUserRatings(userProfile.user_id);
-        } else {
-          console.log('No user profile found for email:', user.email);
         }
       } else {
-        console.log('No authenticated user found');
         router.push('/login');
       }
     } catch (error) {
@@ -65,8 +60,6 @@ export default function RatingsPage() {
 
   async function fetchUserRatings(userId: number) {
     try {
-      console.log('Fetching ratings for user:', userId);
-      
       // First get the ratings with movie IDs
       const { data: ratings, error: ratingsError } = await supabase
         .from('ratings')
@@ -78,8 +71,6 @@ export default function RatingsPage() {
         return;
       }
 
-      console.log('Found ratings:', ratings?.length || 0);
-
       if (!ratings || ratings.length === 0) {
         setUserRatings([]);
         return;
@@ -87,8 +78,6 @@ export default function RatingsPage() {
 
       // Then get the movies details with all ratings
       const movieIds = ratings.map(r => r.movie_id);
-      console.log('Fetching movies:', movieIds);
-      
       const { data: movies, error: moviesError } = await supabase
         .from('movies')
         .select(`
@@ -101,8 +90,6 @@ export default function RatingsPage() {
         console.error('Error fetching movies:', moviesError);
         return;
       }
-
-      console.log('Found movies:', movies?.length || 0);
 
       // Combine ratings with movie details
       const transformedRatings: UserRating[] = ratings.map(userRating => {
@@ -129,7 +116,6 @@ export default function RatingsPage() {
         };
       });
 
-      console.log('Transformed ratings:', transformedRatings.length);
       setUserRatings(transformedRatings);
     } catch (error) {
       console.error('Error in fetchUserRatings:', error);
@@ -140,52 +126,79 @@ export default function RatingsPage() {
     return (
       <div className="min-h-[50vh] flex items-center justify-center">
         <div className="text-center space-y-4">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-400"></div>
-          <p className="text-gray-400">Loading your ratings...</p>
+          <div className="inline-block animate-spin rounded-full h-10 w-10 border-2 border-blue-400 border-t-transparent"></div>
+          <p className="text-gray-400 animate-pulse">Loading your ratings...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen py-12">
-      <div className="container-wrapper max-w-4xl space-y-8">
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">
-            Your Ratings
-          </h1>
-          <p className="text-gray-300 text-lg">
-            Manage and view all your movie ratings
-          </p>
-        </div>
+    <div className="min-h-screen">
+      {/* Hero Section */}
+      <section className="relative py-16 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-blue-900/20 via-background-dark/5 to-transparent"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-background-dark/10 to-transparent animate-pulse-slow"></div>
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent"></div>
 
-        <div className="card backdrop-blur-lg">
-          <div className="flex justify-between items-center mb-6">
-            <p className="text-gray-300">
-              You have rated {userRatings.length} {userRatings.length === 1 ? 'movie' : 'movies'}
+        <div className="relative container-wrapper">
+          <div className="max-w-2xl mx-auto text-center">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+              <span className="hero-text inline-block">
+                Your Ratings
+              </span>
+            </h1>
+            <p className="text-xl text-gray-300/90 mb-8 max-w-xl mx-auto">
+              Manage and view all your movie ratings
             </p>
           </div>
-
-          {userRatings.length > 0 ? (
-            <MovieList 
-              movies={userRatings.map(r => ({
-                ...r.movie,
-                voteAverage: r.rating
-              }))}
-              showDelete={true}
-              onRatingDelete={async () => {
-                if (userId) {
-                  await fetchUserRatings(userId);
-                }
-              }}
-            />
-          ) : (
-            <p className="text-center text-gray-400 py-8">
-              You haven't rated any movies yet. Start exploring and rating movies!
-            </p>
-          )}
         </div>
-      </div>
+      </section>
+
+      {/* Ratings Content */}
+      <section className="container-wrapper -mt-8 relative z-10 mb-16">
+        <div className="max-w-4xl mx-auto">
+          <div className="glass-card p-8 shadow-[0_8px_32px_rgba(0,0,0,0.24)]">
+            <div className="flex justify-between items-center mb-8">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 
+                              flex items-center justify-center">
+                  <FiInfo className="w-5 h-5 text-blue-400" />
+                </div>
+                <p className="text-gray-300">
+                  {userRatings.length} {userRatings.length === 1 ? 'movie' : 'movies'} rated
+                </p>
+              </div>
+            </div>
+
+            {userRatings.length > 0 ? (
+              <MovieList 
+                movies={userRatings.map(r => ({
+                  ...r.movie,
+                  voteAverage: r.rating
+                }))}
+                showDelete={true}
+                onRatingDelete={async () => {
+                  if (userId) {
+                    await fetchUserRatings(userId);
+                  }
+                }}
+              />
+            ) : (
+              <div className="text-center py-16 space-y-6">
+                <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-blue-500/10 to-purple-500/10 
+                              flex items-center justify-center">
+                  <FiStar className="w-10 h-10 text-blue-400/50" />
+                </div>
+                <div className="space-y-2">
+                  <p className="text-xl text-gray-400">No ratings yet</p>
+                  <p className="text-gray-500">Start exploring and rating movies!</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

@@ -17,16 +17,21 @@ export default function MovieList({
   onDelete
 }: MovieListProps) {
   return (
-    <div className="space-y-4">
-      {movies.map((movie: Movie) => (
-        <MovieCard 
+    <div className="grid gap-6">
+      {movies.map((movie: Movie, index: number) => (
+        <div 
           key={movie.id}
-          movie={movie} 
-          onGenreClick={onGenreClick}
-          showDelete={showDelete}
-          onRatingDelete={onRatingDelete}
-          onDelete={onDelete}
-        />
+          className="fade-in-up"
+          style={{ animationDelay: `${index * 100}ms` }}
+        >
+          <MovieCard 
+            movie={movie} 
+            onGenreClick={onGenreClick}
+            showDelete={showDelete}
+            onRatingDelete={onRatingDelete}
+            onDelete={onDelete}
+          />
+        </div>
       ))}
     </div>
   );

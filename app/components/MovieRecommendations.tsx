@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { FiBookmark, FiCheck } from 'react-icons/fi';
+import { FiBookmark, FiCheck, FiZap, FiStar, FiTrendingUp } from 'react-icons/fi';
 import { supabase } from '../lib/supabase';
 import RatingComponent from './RatingComponent';
 
@@ -114,62 +114,74 @@ export default function MovieRecommendations({ userId }: { userId: number }) {
 
   if (loading) {
     return (
-      <div className="text-center p-8">
-        <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-        <p className="mt-4 text-gray-400 text-lg">Finding the perfect movies for you...</p>
+      <div className="text-center py-16 space-y-4">
+        <div className="inline-block animate-spin rounded-full h-10 w-10 border-2 border-blue-400 border-t-transparent"></div>
+        <p className="text-gray-400 animate-pulse text-lg">Finding the perfect movies for you...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center p-8 bg-red-500/10 rounded-lg border border-red-500/20">
-        <p className="text-red-400 text-lg mb-4">{error}</p>
-        <button
-          onClick={() => window.location.reload()}
-          className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200"
-        >
-          Try Again
-        </button>
+      <div className="text-center py-16 space-y-6">
+        <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-red-500/10 to-red-600/10 
+                      flex items-center justify-center">
+          <FiZap className="w-10 h-10 text-red-400/50" />
+        </div>
+        <div className="space-y-2">
+          <p className="text-xl text-red-400">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-6 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl 
+                     hover:from-red-600 hover:to-red-700 transition-all duration-200 shadow-lg shadow-red-500/25"
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     );
   }
 
   if (recommendations.length === 0) {
     return (
-      <div className="text-center p-8 bg-blue-500/10 rounded-lg border border-blue-500/20">
-        <p className="text-gray-300 text-lg mb-2">No recommendations available at the moment.</p>
-        <p className="text-gray-400">Rate more movies to get even better recommendations!</p>
+      <div className="text-center py-16 space-y-6">
+        <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-blue-500/10 to-purple-500/10 
+                      flex items-center justify-center">
+          <FiStar className="w-10 h-10 text-blue-400/50" />
+        </div>
+        <div className="space-y-2">
+          <p className="text-xl text-gray-400">No recommendations yet</p>
+          <p className="text-gray-500">Rate more movies to get personalized recommendations!</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 max-w-4xl mx-auto">
+    <div className="space-y-6">
       {recommendations.map((movie, index) => (
         <Link
           key={movie.movieId}
           href={`/movies/${movie.movieId}`}
           className="block"
         >
-          <div className="card hover:border-primary group transition-all duration-200">
-            <div className="flex justify-between items-start">
-              <div className="space-y-2 flex-grow">
-                <div className="flex items-center gap-3">
-                  <div className="flex-shrink-0 w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                    <span className="text-primary font-bold">{index + 1}</span>
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-100 group-hover:text-primary transition-colors">
-                    {movie.title}
-                  </h3>
-                </div>
-
+          <div className="glass-card group hover:bg-white/[0.03] transition-all duration-300">
+            {/* Top Section */}
+            <div className="flex items-center gap-4 p-4 border-b border-white/5">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 
+                            flex items-center justify-center group-hover:scale-110 transition-all duration-300 hover-glow">
+                <span className="text-blue-400 font-bold text-lg">{index + 1}</span>
+              </div>
+              <div className="flex-grow">
+                <h3 className="text-xl font-semibold text-gray-100 group-hover:text-blue-400 transition-colors">
+                  {movie.title}
+                </h3>
                 {movie.genres && movie.genres.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {movie.genres.map((genre: string) => (
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {movie.genres.slice(0, 3).map((genre: string) => (
                       <span
                         key={`${movie.movieId}-${genre}`}
-                        className="px-2 py-1 text-xs rounded-full bg-blue-900/50 text-blue-200"
+                        className="text-sm text-blue-300/80"
                       >
                         {genre.trim()}
                       </span>
@@ -177,14 +189,14 @@ export default function MovieRecommendations({ userId }: { userId: number }) {
                   </div>
                 )}
               </div>
-
-              {/* Watchlist Button */}
               <button
                 onClick={(e) => handleWatchlistClick(e, movie.movieId)}
-                className={`ml-4 p-2 rounded-full transition-all duration-200 ${watchlist.has(movie.movieId)
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white'
-                  }`}
+                className={`flex-shrink-0 w-10 h-10 rounded-xl transition-all duration-300 
+                          flex items-center justify-center group-hover:scale-110 ${
+                  watchlist.has(movie.movieId)
+                    ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25'
+                    : 'bg-gradient-to-br from-blue-500/20 to-purple-500/20 text-blue-400 hover:text-blue-300'
+                }`}
                 title={watchlist.has(movie.movieId) ? "Remove from watchlist" : "Add to watchlist"}
               >
                 {watchlist.has(movie.movieId) ? (
@@ -195,34 +207,47 @@ export default function MovieRecommendations({ userId }: { userId: number }) {
               </button>
             </div>
 
-            <div className="mt-4 flex items-center justify-between">
-              {/* Rating Component */}
-              <div className="flex flex-col gap-1">
-                <span className="text-sm text-gray-400">My Rating</span>
+            {/* Bottom Section */}
+            <div className="grid grid-cols-3 divide-x divide-white/5">
+              {/* Rating */}
+              <div className="p-4">
+                <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                  <FiStar className="w-4 h-4" />
+                  <span>My Rating</span>
+                </div>
                 <RatingComponent movieId={movie.movieId.toString()} />
               </div>
 
-              {/* Recommendation Score */}
-              <div className="flex flex-col gap-1">
-                <span className="text-sm text-gray-400">Recommendation Score</span>
-                <div className="flex items-center gap-2">
-                  <div className="w-32 h-2 bg-blue-500/20 rounded-full overflow-hidden">
+              {/* Score */}
+              <div className="p-4">
+                <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                  <FiTrendingUp className="w-4 h-4" />
+                  <span>Match Score</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex-grow h-2 bg-blue-500/10 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-primary transition-all duration-300"
+                      className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-300 
+                               group-hover:from-blue-400 group-hover:to-blue-500"
                       style={{ width: `${(movie.score / 5) * 100}%` }}
                     ></div>
                   </div>
-                  <span className="text-primary font-medium">{movie.score.toFixed(2)}</span>
+                  <span className="text-blue-400 font-medium min-w-[3ch]">{movie.score.toFixed(1)}</span>
                 </div>
               </div>
 
               {/* Average Rating */}
               {movie.averageRating && (
-                <div className="text-right">
-                  <div className="text-sm text-gray-400">Average Rating</div>
-                  <div className="text-xl font-bold text-primary">
-                    {movie.averageRating.toFixed(1)}
-                    <span className="text-sm text-gray-400 ml-1">
+                <div className="p-4">
+                  <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                    <FiZap className="w-4 h-4" />
+                    <span>Average Rating</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl font-bold text-blue-400">
+                      {movie.averageRating.toFixed(1)}
+                    </span>
+                    <span className="text-sm text-gray-400">
                       ({movie.totalRatings} {movie.totalRatings === 1 ? 'rating' : 'ratings'})
                     </span>
                   </div>
@@ -233,8 +258,10 @@ export default function MovieRecommendations({ userId }: { userId: number }) {
         </Link>
       ))}
 
-      <div className="text-center text-sm text-gray-400 mt-8">
-        <p>Rate more movies to get even better recommendations!</p>
+      <div className="glass-card p-4 text-center">
+        <p className="text-gray-400">
+          Rate more movies to get even better recommendations!
+        </p>
       </div>
     </div>
   );

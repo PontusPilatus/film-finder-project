@@ -1,36 +1,96 @@
-import { FiTarget, FiSearch, FiStar, FiMail, FiLinkedin, FiGithub, FiCode, FiCpu, FiDatabase, FiLayers } from 'react-icons/fi';
+'use client';
+
+import { 
+  FiTarget, 
+  FiSearch, 
+  FiStar, 
+  FiMail, 
+  FiLinkedin, 
+  FiGithub, 
+  FiCode, 
+  FiCpu, 
+  FiDatabase, 
+  FiLayers 
+} from 'react-icons/fi';
 
 export default function About() {
+  const features = [
+    {
+      icon: FiTarget,
+      title: 'Curated Selection',
+      description: 'Carefully selected movies across all genres and eras'
+    },
+    {
+      icon: FiSearch,
+      title: 'Smart Search',
+      description: "Advanced filtering to find exactly what you're looking for"
+    },
+    {
+      icon: FiStar,
+      title: 'Personalized',
+      description: 'Recommendations tailored to your taste'
+    }
+  ];
+
+  const steps = [
+    {
+      number: "01",
+      title: "Create Account",
+      description: "Sign up for free to start your movie journey"
+    },
+    {
+      number: "02",
+      title: "Rate Movies",
+      description: "Rate movies you've watched to improve recommendations"
+    },
+    {
+      number: "03",
+      title: "Get Recommendations",
+      description: "Receive personalized movie suggestions"
+    },
+    {
+      number: "04",
+      title: "Discover",
+      description: "Explore new films and expand your horizons"
+    }
+  ];
+
+  const techStack = [
+    { icon: FiCode, label: "Next.js" },
+    { icon: FiDatabase, label: "PostgreSQL" },
+    { icon: FiCpu, label: "AI Models" },
+    { icon: FiLayers, label: "TailwindCSS" }
+  ];
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative pb-12 overflow-hidden">
-        <div className="absolute inset-0 hero-gradient opacity-40"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-background-dark/5 to-transparent"></div>
+      <section className="relative py-16 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-blue-900/20 via-background-dark/5 to-transparent"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-background-dark/10 to-transparent animate-pulse-slow"></div>
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent"></div>
 
         <div className="relative container-wrapper">
-          <div className="grid lg:grid-cols-1 gap-8 lg:gap-12 items-center pt-8 sm:pt-12 md:pt-16">
-            <div className="space-y-6 text-center fade-in-up">
-              <div className="space-y-3">
-                <h1 className="text-4xl lg:text-5xl font-bold text-gray-100">
-                  About Film Finder
-                </h1>
-                <p className="text-lg text-gray-300">
-                  Your trusted companion in discovering the world of cinema
-                </p>
-              </div>
-            </div>
+          <div className="max-w-2xl mx-auto text-center">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+              <span className="hero-text inline-block">
+                About Film Finder
+              </span>
+            </h1>
+            <p className="text-xl text-gray-300/90 mb-8 max-w-xl mx-auto">
+              Your trusted companion in discovering the world of cinema
+            </p>
           </div>
         </div>
       </section>
 
-      {/* Enhanced Mission Section */}
-      <section className="container-wrapper py-16">
-        <div className="card backdrop-blur-lg">
-          <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600 mb-6">
+      {/* Mission Section */}
+      <section className="container-wrapper -mt-8 relative z-10 mb-16">
+        <div className="glass-card p-8 shadow-[0_8px_32px_rgba(0,0,0,0.24)]">
+          <h2 className="text-3xl font-bold hero-text mb-6">
             Our Mission
           </h2>
-          <p className="text-gray-300 leading-relaxed text-lg">
+          <p className="text-gray-300/90 leading-relaxed text-lg">
             Film Finder was created with a simple goal: to help movie enthusiasts discover and explore
             the vast world of cinema. We believe that everyone deserves to find films that move,
             inspire, and entertain them. Using advanced AI technology and comprehensive movie data,
@@ -40,153 +100,144 @@ export default function About() {
       </section>
 
       {/* Features Section */}
-      <section className="container-wrapper py-16 max-w-6xl">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="card group">
-            <div className="relative space-y-4">
-              <div className="w-12 h-12 mx-auto rounded-full bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                <FiTarget className="w-6 h-6 text-blue-400" />
+      <section className="container-wrapper py-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {features.map((feature, index) => (
+            <div 
+              key={feature.title}
+              className="glass-card group p-8 hover:bg-white/[0.03] transition-all duration-300 fade-in-up"
+              style={{ animationDelay: `${(index + 1) * 150}ms` }}
+            >
+              <div className="space-y-6 text-center">
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 
+                              flex items-center justify-center group-hover:scale-110 transition-all duration-300 hover-glow">
+                  <feature.icon className="w-8 h-8 text-blue-400 group-hover:text-blue-300 transition-colors" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-100 group-hover:text-blue-400 transition-colors mb-2">
+                    {feature.title}
+                  </h3>
+                  <p className="text-gray-400 group-hover:text-gray-300 transition-colors">
+                    {feature.description}
+                  </p>
+                </div>
               </div>
-              <h3 className="text-xl font-semibold text-gray-100 group-hover:text-blue-400 transition-colors text-center">
-                Curated Selection
-              </h3>
-              <p className="text-gray-400 text-center">
-                Carefully selected movies across all genres and eras
-              </p>
             </div>
-          </div>
-
-          <div className="card group">
-            <div className="relative space-y-4">
-              <div className="w-12 h-12 mx-auto rounded-full bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                <FiSearch className="w-6 h-6 text-blue-400" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-100 group-hover:text-blue-400 transition-colors text-center">
-                Smart Search
-              </h3>
-              <p className="text-gray-400 text-center">
-                Advanced filtering to find exactly what you're looking for
-              </p>
-            </div>
-          </div>
-
-          <div className="card group">
-            <div className="relative space-y-4">
-              <div className="w-12 h-12 mx-auto rounded-full bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                <FiStar className="w-6 h-6 text-blue-400" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-100 group-hover:text-blue-400 transition-colors text-center">
-                Personalized
-              </h3>
-              <p className="text-gray-400 text-center">
-                Recommendations tailored to your taste
-              </p>
-            </div>
-          </div>
+          ))}
         </div>
       </section>
 
       {/* How It Works Section */}
-      <section className="container-wrapper py-16 max-w-6xl">
-        <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600 mb-8 text-center">
-          How It Works
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {[
-            {
-              number: "01",
-              title: "Create Account",
-              description: "Sign up for free to start your movie journey"
-            },
-            {
-              number: "02",
-              title: "Rate Movies",
-              description: "Rate movies you've watched to improve recommendations"
-            },
-            {
-              number: "03",
-              title: "Get Recommendations",
-              description: "Receive personalized movie suggestions"
-            },
-            {
-              number: "04",
-              title: "Discover",
-              description: "Explore new films and expand your horizons"
-            }
-          ].map((step, index) => (
-            <div key={index} className="card relative group">
-              <div className="space-y-4">
-                <div className="text-5xl font-bold text-blue-400/20 group-hover:text-blue-400/30 transition-colors">
-                  {step.number}
+      <section className="container-wrapper py-16 relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-950/20 to-transparent opacity-40"></div>
+        <div className="relative space-y-12">
+          <div className="text-center space-y-4">
+            <h2 className="text-3xl md:text-4xl font-bold hero-text">
+              How It Works
+            </h2>
+            <p className="text-xl text-gray-300/90 max-w-2xl mx-auto">
+              Get started with Film Finder in four simple steps
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {steps.map((step, index) => (
+              <div 
+                key={index} 
+                className="glass-card p-8 group hover:bg-white/[0.03] transition-all duration-300 fade-in-up"
+                style={{ animationDelay: `${(index + 1) * 150}ms` }}
+              >
+                <div className="space-y-4">
+                  <div className="text-6xl font-bold bg-gradient-to-r from-blue-400/20 to-blue-600/20 
+                                group-hover:from-blue-400/30 group-hover:to-blue-600/30 
+                                bg-clip-text text-transparent transition-colors">
+                    {step.number}
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-100 group-hover:text-blue-400 transition-colors">
+                    {step.title}
+                  </h3>
+                  <p className="text-gray-400 group-hover:text-gray-300 transition-colors">
+                    {step.description}
+                  </p>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-100">
-                  {step.title}
-                </h3>
-                <p className="text-gray-400">
-                  {step.description}
-                </p>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
 
       {/* Tech Stack Section */}
-      <section className="container-wrapper py-16 max-w-6xl">
-        <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600 mb-8 text-center">
-          Built With Modern Tech
-        </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {[
-            { icon: FiCode, label: "Next.js" },
-            { icon: FiDatabase, label: "PostgreSQL" },
-            { icon: FiCpu, label: "AI Models" },
-            { icon: FiLayers, label: "TailwindCSS" },
-          ].map((tech, index) => (
-            <div key={index} className="card group">
-              <div className="space-y-3 text-center">
-                <div className="w-12 h-12 mx-auto rounded-full bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <tech.icon className="w-6 h-6 text-blue-400" />
+      <section className="container-wrapper py-16">
+        <div className="glass-card p-8 space-y-8">
+          <div className="text-center space-y-4">
+            <h2 className="text-3xl font-bold hero-text">
+              Built With Modern Tech
+            </h2>
+            <p className="text-gray-300/90">
+              Powered by the latest technologies for the best experience
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {techStack.map((tech, index) => (
+              <div 
+                key={index} 
+                className="glass-card group p-6 hover:bg-white/[0.03] transition-all duration-300 fade-in-up"
+                style={{ animationDelay: `${(index + 1) * 150}ms` }}
+              >
+                <div className="space-y-4 text-center">
+                  <div className="w-12 h-12 mx-auto rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 
+                                flex items-center justify-center group-hover:scale-110 transition-all duration-300 hover-glow">
+                    <tech.icon className="w-6 h-6 text-blue-400 group-hover:text-blue-300 transition-colors" />
+                  </div>
+                  <p className="text-gray-300 font-medium group-hover:text-blue-400 transition-colors">{tech.label}</p>
                 </div>
-                <p className="text-gray-300 font-medium">{tech.label}</p>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
 
       {/* Developer Section */}
-      <section className="container-wrapper py-16 max-w-4xl">
-        <div className="card backdrop-blur-lg">
-          <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600 mb-8">
-            Meet the Developer
-          </h2>
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
-            <div className="w-32 h-32 rounded-full overflow-hidden bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
-              <span className="text-4xl">PP</span>
+      <section className="container-wrapper py-16">
+        <div className="glass-card p-8">
+          <div className="space-y-8">
+            <div className="text-center">
+              <h2 className="text-3xl font-bold hero-text mb-4">
+                Meet the Developer
+              </h2>
             </div>
-            <div className="space-y-4 text-center md:text-left">
-              <h3 className="text-2xl font-semibold text-gray-100">Pontus Paulsson</h3>
-              <p className="text-gray-300 text-lg">Full Stack Developer</p>
-              <div className="flex flex-wrap gap-4 justify-center md:justify-start">
-                <a
-                  href="https://www.linkedin.com/in/paulssonpontus/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-all duration-200"
-                >
-                  <FiLinkedin className="w-5 h-5" />
-                  <span>Connect on LinkedIn</span>
-                </a>
-                <a
-                  href="https://github.com/PontusPilatus"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-all duration-200"
-                >
-                  <FiGithub className="w-5 h-5" />
-                  <span>View GitHub</span>
-                </a>
+
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
+              <div className="w-32 h-32 rounded-2xl overflow-hidden bg-gradient-to-br from-blue-500 to-purple-500 
+                            flex items-center justify-center shadow-lg shadow-blue-500/25">
+                <span className="text-4xl font-bold text-white">PP</span>
+              </div>
+              <div className="space-y-4 text-center md:text-left flex-grow">
+                <h3 className="text-2xl font-bold text-gray-100">Pontus Paulsson</h3>
+                <p className="text-xl text-gray-300/90">Full Stack Developer</p>
+                <div className="flex flex-wrap gap-4 justify-center md:justify-start">
+                  <a
+                    href="https://www.linkedin.com/in/paulssonpontus/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="glass-card group px-4 py-2 hover:bg-white/[0.03] transition-all duration-300 
+                             inline-flex items-center gap-2 hover:scale-105"
+                  >
+                    <FiLinkedin className="w-5 h-5 text-blue-400 group-hover:text-blue-300 transition-colors" />
+                    <span className="text-gray-300 group-hover:text-white transition-colors">Connect on LinkedIn</span>
+                  </a>
+                  <a
+                    href="https://github.com/PontusPilatus"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="glass-card group px-4 py-2 hover:bg-white/[0.03] transition-all duration-300 
+                             inline-flex items-center gap-2 hover:scale-105"
+                  >
+                    <FiGithub className="w-5 h-5 text-blue-400 group-hover:text-blue-300 transition-colors" />
+                    <span className="text-gray-300 group-hover:text-white transition-colors">View GitHub</span>
+                  </a>
+                </div>
               </div>
             </div>
           </div>

@@ -1,15 +1,14 @@
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import './globals.css'
-import Navbar from '@/app/components/Navbar'
-import Footer from '@/app/components/Footer'
-import ClientLayout from '@/app/components/ClientLayout'
+import { Inter } from 'next/font/google'
+import ClientLayout from './components/ClientLayout'
+import Navbar from './components/Navbar'
+import Footer from './components/Footer'
 
 const inter = Inter({ subsets: ['latin'] })
 
-export const metadata: Metadata = {
+export const metadata = {
   title: 'Film Finder',
-  description: 'Discover and track your favorite movies',
+  description: 'Discover your next favorite movie',
 }
 
 export default function RootLayout({
@@ -19,7 +18,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${inter.className} bg-background text-white`}>
         <ClientLayout>
           <div className="flex flex-col min-h-screen">
             <Navbar />

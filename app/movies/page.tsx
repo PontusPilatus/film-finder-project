@@ -1,9 +1,10 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
-import { Movie } from '../../types/movie'
+import { Movie } from '../types/movie'
 import MovieList from '../components/MovieList'
 import { FiSearch, FiFilter, FiX } from 'react-icons/fi'
+import CustomSelect from '../components/CustomSelect'
 
 const MOVIES_PER_PAGE = 10;
 
@@ -197,37 +198,29 @@ export default function Movies() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative pb-12 overflow-hidden">
-        <div className="absolute inset-0 hero-gradient opacity-40"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-background-dark/5 to-transparent"></div>
+      <section className="relative py-16 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-blue-900/20 via-background-dark/5 to-transparent"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-background-dark/10 to-transparent animate-pulse-slow"></div>
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent"></div>
         
         <div className="relative container-wrapper">
-          <div className="grid lg:grid-cols-1 gap-8 lg:gap-12 items-center pt-8 sm:pt-12 md:pt-16">
-            <div className="space-y-6 text-center fade-in-up">
-              <div className="space-y-3">
-                <h1 className="text-4xl lg:text-5xl font-bold text-gray-100">
-                  Discover Movies
-                </h1>
-                <p className="text-lg text-gray-300">
-                  Find your next favorite film from our curated collection
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+          <div className="max-w-2xl mx-auto text-center">
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">
+              <span className="hero-text inline-block">
+                Discover Movies
+              </span>
+            </h1>
+            <p className="text-lg text-gray-300/90 mb-8">
+              Find your next favorite film from our curated collection
+            </p>
 
-      {/* Search and Filters Card */}
-      <section className="container-wrapper py-16">
-        <div className="card bg-[var(--background-card)] backdrop-blur-md border-white/10">
-          <div className="space-y-8">
-            {/* Search */}
-            <div className="flex gap-4">
-              <div className="relative flex-grow">
+            {/* Search Bar */}
+            <div className="flex gap-3">
+              <div className="relative flex-grow group">
                 <input 
                   type="text" 
                   placeholder="Search for a movie..." 
-                  className="input-field pl-10"
+                  className="input-field pl-12 group-hover:pl-14 transition-all duration-300"
                   value={searchQuery}
                   onChange={(e) => {
                     setSearchQuery(e.target.value)
@@ -235,90 +228,91 @@ export default function Movies() {
                   }}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                 />
-                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-blue-400 transition-all duration-300 group-hover:scale-110" />
               </div>
               <button 
-                className="btn-primary"
+                className="btn-primary group whitespace-nowrap"
                 onClick={handleSearch}
               >
                 Search
+                <span className="inline-block transition-transform group-hover:translate-x-1">→</span>
               </button>
             </div>
+          </div>
+        </div>
+      </section>
 
+      {/* Filters Card */}
+      <section className="container-wrapper -mt-8 relative z-10 mb-16">
+        <div className="glass-card p-8 shadow-[0_8px_32px_rgba(0,0,0,0.24)]">
+          <div className="space-y-8">
             {/* Filters Section */}
             <div className="space-y-6">
               {/* Year Range and Sort */}
               <div className="flex flex-wrap gap-6">
                 {/* Year Range */}
-                <div>
-                  <label className="text-sm text-gray-400 block mb-2">Year Range</label>
+                <div className="space-y-2">
+                  <label className="text-sm text-gray-400 block">Year Range</label>
                   <div className="flex items-center gap-2">
-                    <select
-                      className="bg-[var(--background-dark)] border border-white/10 rounded-lg px-4 py-2.5 
-                               text-gray-200 w-[120px] focus:outline-none focus:ring-2 focus:ring-blue-500/40
-                               hover:border-white/20 transition-colors appearance-none cursor-pointer
-                               bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik01Ljk5OTg5IDQuOTc2NzFMMTAuMTk1OSAwLjc4MDc2MUwxMS42MDk5IDIuMTk0NzZMNS45OTk4OSA3LjgwNDc2TDAuMzg5ODkzIDIuMTk0NzZMMS44MDM4OSAwLjc4MDc2MUw1Ljk5OTg5IDQuOTc2NzFaIiBmaWxsPSIjOTRBM0I4Ii8+Cjwvc3ZnPgo=')] 
-                               bg-[length:12px_12px] bg-[right_16px_center] bg-no-repeat"
-                      value={filters.yearFrom || ''}
-                      onChange={(e) => handleFilterChange('yearFrom', e.target.value)}
-                    >
-                      <option value="">From</option>
-                      {availableYears.map(year => (
-                        <option key={year} value={year}>{year}</option>
-                      ))}
-                    </select>
+                    <CustomSelect
+                      className="w-[120px]"
+                      value={filters.yearFrom?.toString() || ''}
+                      onChange={(value) => handleFilterChange('yearFrom', value)}
+                      options={[
+                        { value: '', label: 'From' },
+                        ...availableYears.map(year => ({
+                          value: year.toString(),
+                          label: year.toString()
+                        }))
+                      ]}
+                    />
 
                     <span className="text-gray-400">-</span>
 
-                    <select
-                      className="bg-[var(--background-dark)] border border-white/10 rounded-lg px-4 py-2.5 
-                               text-gray-200 w-[120px] focus:outline-none focus:ring-2 focus:ring-blue-500/40
-                               hover:border-white/20 transition-colors appearance-none cursor-pointer
-                               bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik01Ljk5OTg5IDQuOTc2NzFMMTAuMTk1OSAwLjc4MDc2MUwxMS42MDk5IDIuMTk0NzZMNS45OTk4OSA3LjgwNDc2TDAuMzg5ODkzIDIuMTk0NzZMMS44MDM4OSAwLjc4MDc2MUw1Ljk5OTg5IDQuOTc2NzFaIiBmaWxsPSIjOTRBM0I4Ii8+Cjwvc3ZnPgo=')] 
-                               bg-[length:12px_12px] bg-[right_16px_center] bg-no-repeat"
-                      value={filters.yearTo || ''}
-                      onChange={(e) => handleFilterChange('yearTo', e.target.value)}
-                    >
-                      <option value="">To</option>
-                      {availableYears.map(year => (
-                        <option key={year} value={year}>{year}</option>
-                      ))}
-                    </select>
+                    <CustomSelect
+                      className="w-[120px]"
+                      value={filters.yearTo?.toString() || ''}
+                      onChange={(value) => handleFilterChange('yearTo', value)}
+                      options={[
+                        { value: '', label: 'To' },
+                        ...availableYears.map(year => ({
+                          value: year.toString(),
+                          label: year.toString()
+                        }))
+                      ]}
+                    />
                   </div>
                 </div>
 
                 {/* Sort */}
-                <div>
-                  <label className="text-sm text-gray-400 block mb-2">Sort By</label>
-                  <select
-                    className="bg-[var(--background-dark)] border border-white/10 rounded-lg px-4 py-2.5 
-                             text-gray-200 w-[200px] focus:outline-none focus:ring-2 focus:ring-blue-500/40
-                             hover:border-white/20 transition-colors appearance-none cursor-pointer
-                             bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik01Ljk5OTg5IDQuOTc2NzFMMTAuMTk1OSAwLjc4MDc2MUwxMS42MDk5IDIuMTk0NzZMNS45OTk4OSA3LjgwNDc2TDAuMzg5ODkzIDIuMTk0NzZMMS44MDM4OSAwLjc4MDc2MUw1Ljk5OTg5IDQuOTc2NzFaIiBmaWxsPSIjOTRBM0I4Ii8+Cjwvc3ZnPgo=')] 
-                             bg-[length:12px_12px] bg-[right_16px_center] bg-no-repeat"
+                <div className="space-y-2">
+                  <label className="text-sm text-gray-400 block">Sort By</label>
+                  <CustomSelect
+                    className="w-[200px]"
                     value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as SortOption)}
-                  >
-                    <option value="title">Title (A-Z)</option>
-                    <option value="rating_desc">Highest Rated</option>
-                    <option value="rating_asc">Lowest Rated</option>
-                    <option value="most_rated">Most Rated</option>
-                  </select>
+                    onChange={(value) => setSortBy(value as SortOption)}
+                    options={[
+                      { value: 'title', label: 'Title (A-Z)' },
+                      { value: 'rating_desc', label: 'Highest Rated' },
+                      { value: 'rating_asc', label: 'Lowest Rated' },
+                      { value: 'most_rated', label: 'Most Rated' }
+                    ]}
+                  />
                 </div>
               </div>
 
               {/* Genre Tags */}
-              <div>
-                <label className="text-sm text-gray-400 block mb-2">Genres (select multiple)</label>
+              <div className="space-y-3">
+                <label className="text-sm text-gray-400 block">Genres (select multiple)</label>
                 <div className="flex flex-wrap gap-2">
                   {availableGenres.map(genre => (
                     <button
                       key={genre}
                       onClick={() => handleGenreClick(genre)}
-                      className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
+                      className={`px-4 py-2 rounded-xl text-sm transition-all duration-300 hover:scale-105 ${
                         filters.genres?.includes(genre)
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20'
+                          ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25'
+                          : 'glass-card hover:bg-white/[0.03] text-blue-400'
                       }`}
                     >
                       {genre}
@@ -329,20 +323,20 @@ export default function Movies() {
 
               {/* Active Filters */}
               {(filters.yearFrom || filters.yearTo || (filters.genres && filters.genres.length > 0)) && (
-                <div className="flex flex-wrap items-center gap-2 pt-2">
+                <div className="flex flex-wrap items-center gap-2 pt-4">
                   {/* Show active year range filter */}
                   {(filters.yearFrom || filters.yearTo) && (
-                    <span className="px-3 py-1.5 rounded-full bg-blue-500 text-white 
-                                   flex items-center gap-2 text-sm">
+                    <span className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white 
+                                   flex items-center gap-2 text-sm shadow-lg shadow-blue-500/25">
                       Year: {filters.yearFrom || 'Any'} - {filters.yearTo || 'Any'}
                       <button
                         onClick={() => {
                           handleFilterChange('yearFrom', '');
                           handleFilterChange('yearTo', '');
                         }}
-                        className="hover:text-blue-200 transition-colors"
+                        className="hover:text-blue-200 transition-colors ml-2"
                       >
-                        <FiX />
+                        <FiX className="w-4 h-4" />
                       </button>
                     </span>
                   )}
@@ -351,30 +345,31 @@ export default function Movies() {
                   {filters.genres?.map(genre => (
                     <span
                       key={genre}
-                      className="px-3 py-1.5 rounded-full bg-blue-500 text-white 
-                               flex items-center gap-2 text-sm"
+                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white 
+                               flex items-center gap-2 text-sm shadow-lg shadow-blue-500/25"
                     >
                       {genre}
                       <button
                         onClick={() => handleGenreClick(genre)}
-                        className="hover:text-blue-200 transition-colors"
+                        className="hover:text-blue-200 transition-colors ml-2"
                       >
-                        <FiX />
+                        <FiX className="w-4 h-4" />
                       </button>
                     </span>
                   ))}
 
                   {/* Clear all filters button */}
                   <button
-                    className="px-3 py-1.5 rounded-full bg-blue-500/10 text-blue-400 
-                             hover:bg-blue-500/20 transition-colors text-sm flex items-center gap-2"
+                    className="px-4 py-2 rounded-xl glass-card hover:bg-white/[0.03]
+                             transition-all duration-300 text-sm flex items-center gap-2
+                             hover:scale-105"
                     onClick={() => {
                       setFilters({});
                       setCurrentPage(1);
                       setSortBy('title');
                     }}
                   >
-                    <FiFilter />
+                    <FiFilter className="w-4 h-4" />
                     Clear All
                   </button>
                 </div>
@@ -385,40 +380,43 @@ export default function Movies() {
       </section>
 
       {/* Movie List Section */}
-      <section className="container-wrapper mb-16">
+      <section className="container-wrapper py-16">
         {loading ? (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-400"></div>
-            <p className="mt-4 text-gray-400">Loading movies...</p>
+          <div className="text-center py-12 space-y-4">
+            <div className="inline-block animate-spin rounded-full h-10 w-10 border-2 border-blue-400 border-t-transparent"></div>
+            <p className="text-gray-400 animate-pulse">Loading movies...</p>
           </div>
         ) : movies.length === 0 ? (
-          <div className="text-center py-12">
+          <div className="text-center py-12 space-y-4">
+            <div className="text-6xl">🎬</div>
             <p className="text-xl text-gray-400">No movies found matching your criteria.</p>
+            <p className="text-gray-500">Try adjusting your filters or search terms.</p>
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-12">
             <MovieList movies={movies} />
             
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex justify-center gap-2 mt-8">
+              <div className="flex justify-center gap-2">
                 {/* Previous button */}
                 {currentPage > 1 && (
                   <button
                     onClick={() => setCurrentPage(currentPage - 1)}
-                    className="px-4 py-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors"
+                    className="glass-card px-4 py-2 text-blue-400 hover:bg-white/[0.03] transition-all duration-300 hover:scale-105 group"
                   >
-                    Previous
+                    <span className="inline-block transition-transform group-hover:-translate-x-1">←</span>
+                    {" "}Prev
                   </button>
                 )}
 
                 {/* First page */}
                 <button
                   onClick={() => setCurrentPage(1)}
-                  className={`px-4 py-2 rounded-lg transition-colors ${
+                  className={`px-4 py-2 rounded-xl transition-all duration-300 hover:scale-105 ${
                     currentPage === 1
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20'
+                      ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25'
+                      : 'glass-card hover:bg-white/[0.03] text-blue-400'
                   }`}
                 >
                   1
@@ -434,10 +432,10 @@ export default function Movies() {
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
-                      className={`px-4 py-2 rounded-lg transition-colors ${
+                      className={`px-4 py-2 rounded-xl transition-all duration-300 hover:scale-105 ${
                         currentPage === page
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20'
+                          ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25'
+                          : 'glass-card hover:bg-white/[0.03] text-blue-400'
                       }`}
                     >
                       {page}
@@ -451,10 +449,10 @@ export default function Movies() {
                 {totalPages > 1 && (
                   <button
                     onClick={() => setCurrentPage(totalPages)}
-                    className={`px-4 py-2 rounded-lg transition-colors ${
+                    className={`px-4 py-2 rounded-xl transition-all duration-300 hover:scale-105 ${
                       currentPage === totalPages
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20'
+                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25'
+                        : 'glass-card hover:bg-white/[0.03] text-blue-400'
                     }`}
                   >
                     {totalPages}
@@ -465,9 +463,10 @@ export default function Movies() {
                 {currentPage < totalPages && (
                   <button
                     onClick={() => setCurrentPage(currentPage + 1)}
-                    className="px-4 py-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors"
+                    className="glass-card px-4 py-2 text-blue-400 hover:bg-white/[0.03] transition-all duration-300 hover:scale-105 group"
                   >
-                    Next
+                    Next{" "}
+                    <span className="inline-block transition-transform group-hover:translate-x-1">→</span>
                   </button>
                 )}
               </div>
