@@ -47,33 +47,17 @@ async function getGenreBasedRecommendations(
   unratedMovies: any[],
   userRatings: any[]
 ) {
-  console.log('\n==== Genre-Based Recommendations Process ====');
-  console.log('User ratings count:', userRatings.length);
-  console.log('Available unrated movies:', unratedMovies.length);
-
   // Get the movies this user has rated highly (4 or 5 stars)
   const highlyRated = userRatings.filter(r => r.rating >= 4);
-  console.log('Highly rated movies count:', highlyRated.length);
 
   // If user hasn't rated anything highly yet, return popular movies
   if (highlyRated.length === 0) {
-    console.log('\n==== Falling Back to Popularity-Based Recommendations ====');
-    console.log('Reason: No highly rated movies found');
-
     const popularMovies = unratedMovies
       .map(movie => {
         const ratings = movie.ratings || [];
         const avgRating = ratings.length > 0
           ? ratings.reduce((sum: number, r: any) => sum + r.rating, 0) / ratings.length
           : 0;
-
-        console.log('\nProcessing movie for popularity:', {
-          title: movie.title,
-          rawAvgRating: avgRating,
-          formattedAvgRating: Number(avgRating.toFixed(2)),
-          totalRatings: ratings.length,
-          genres: movie.genres?.split('|').map((g: string) => g.trim()) || []
-        });
 
         return {
           movieId: movie.movie_id,
@@ -86,15 +70,6 @@ async function getGenreBasedRecommendations(
       })
       .sort((a, b) => b.score - a.score)
       .slice(0, 5);
-
-    console.log('\n==== Top 5 Popular Movies Selected ====');
-    popularMovies.forEach((movie, index) => {
-      console.log(`${index + 1}. ${movie.title}:`, {
-        score: movie.score,
-        avgRating: movie.averageRating,
-        totalRatings: movie.totalRatings
-      });
-    });
 
     return popularMovies;
   }
@@ -114,54 +89,42 @@ async function getGenreBasedRecommendations(
     });
   });
 
-  console.log('\nUser genre preferences:', Object.fromEntries(genrePreferences));
-  console.log('Max genre count:', Math.max(...Array.from(genrePreferences.values())));
-
   // Get the maximum genre count for normalization
   const maxGenreCount = Math.max(...Array.from(genrePreferences.values()));
 
   // Score unrated movies based on genre preferences
-  return unratedMovies
-    .map(movie => {
-      const movieGenres = movie.genres.split('|').map((g: string) => g.trim());
-      const ratings = movie.ratings || [];
-      const avgRating = ratings.length > 0
-        ? ratings.reduce((sum: number, r: any) => sum + r.rating, 0) / ratings.length
-        : 3; // Default rating if no ratings available
+  const movieScores = unratedMovies.map(movie => {
+    const movieGenres = movie.genres.split('|').map((g: string) => g.trim());
+    const ratings = movie.ratings || [];
+    const avgRating = ratings.length > 0
+      ? ratings.reduce((sum: number, r: any) => sum + r.rating, 0) / ratings.length
+      : 3; // Default rating if no ratings available
 
-      // Calculate genre match score (0-1)
-      let genreMatchCount = 0;
-      movieGenres.forEach((genre: string) => {
-        if (genrePreferences.has(genre)) {
-          genreMatchCount += genrePreferences.get(genre)! / maxGenreCount;
-        }
-      });
-      const genreScore = genreMatchCount / movieGenres.length; // Normalize by number of genres
+    // Calculate genre match score (0-1)
+    let genreMatchCount = 0;
+    movieGenres.forEach((genre: string) => {
+      if (genrePreferences.has(genre)) {
+        genreMatchCount += genrePreferences.get(genre)! / maxGenreCount;
+      }
+    });
+    const genreScore = genreMatchCount / movieGenres.length; // Normalize by number of genres
 
-      // Calculate final score (1-5 range)
-      // Weight: 70% genre match, 30% average rating
-      const weightedScore = (genreScore * 0.7 * 5) + (avgRating * 0.3);
-      const finalScore = Math.min(5, Math.max(1, weightedScore));
+    // Calculate final score (1-5 range)
+    // Weight: 70% genre match, 30% average rating
+    const weightedScore = (genreScore * 0.7 * 5) + (avgRating * 0.3);
+    const finalScore = Math.min(5, Math.max(1, weightedScore));
 
-      console.log('\nMovie scoring details:', {
-        title: movie.title,
-        genres: movieGenres,
-        genreMatchScore: Number(genreScore.toFixed(2)),
-        avgRating: Number(avgRating.toFixed(2)),
-        weightedScore: Number(weightedScore.toFixed(2)),
-        finalScore: Number(finalScore.toFixed(2)),
-        totalRatings: ratings.length
-      });
+    return {
+      movieId: movie.movie_id,
+      title: movie.title,
+      score: Number(finalScore.toFixed(2)),
+      genres: movieGenres,
+      averageRating: Number(avgRating.toFixed(2)),
+      totalRatings: ratings.length
+    };
+  });
 
-      return {
-        movieId: movie.movie_id,
-        title: movie.title,
-        score: Number(finalScore.toFixed(2)),
-        genres: movieGenres,
-        averageRating: Number(avgRating.toFixed(2)),
-        totalRatings: ratings.length
-      };
-    })
+  return movieScores
     .sort((a, b) => b.score - a.score)
     .slice(0, 5);
 }

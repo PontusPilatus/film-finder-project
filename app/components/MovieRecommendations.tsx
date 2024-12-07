@@ -49,38 +49,16 @@ export default function MovieRecommendations({ userId }: { userId: number }) {
     const fetchRecommendations = async () => {
       try {
         setLoading(true);
-        console.log('Fetching recommendations for user:', userId);
-
         const response = await fetch(`/api/recommendations/${userId}`);
-        console.log('Response status:', response.status);
 
         if (!response.ok) {
-          const errorText = await response.text();
-          console.error('API Error:', errorText);
           throw new Error(`Failed to fetch: ${response.statusText}`);
         }
 
         const data: ApiResponse = await response.json();
-        console.log('Raw API response:', data);
-        console.log('Recommendation method:', data.method);
-        console.log('Number of recommendations:', data.recommendations?.length);
         
-        if (data.recommendations) {
-          console.log('Sample recommendations:', data.recommendations.slice(0, 3).map(r => ({
-            title: r.title,
-            score: r.score,
-            avgRating: r.averageRating,
-            totalRatings: r.totalRatings,
-            genres: r.genres
-          })));
-        }
-
         if (data.error) {
           throw new Error(data.error);
-        }
-
-        if (!data.recommendations || data.recommendations.length === 0) {
-          console.log('No recommendations returned from API');
         }
 
         setRecommendations(data.recommendations || []);
@@ -95,8 +73,6 @@ export default function MovieRecommendations({ userId }: { userId: number }) {
 
     if (userId) {
       fetchRecommendations();
-    } else {
-      console.log('No userId provided');
     }
   }, [userId]);
 
@@ -259,7 +235,6 @@ export default function MovieRecommendations({ userId }: { userId: number }) {
 
       <div className="text-center text-sm text-gray-400 mt-8">
         <p>Rate more movies to get even better recommendations!</p>
-        <p className="mt-2">Using {method} for recommendations</p>
       </div>
     </div>
   );
