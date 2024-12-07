@@ -15,8 +15,14 @@ interface Recommendation {
   genres?: string[];
 }
 
+interface ApiResponse {
+  recommendations: Recommendation[];
+  method: string;
+}
+
 export default function MovieRecommendations({ userId }: { userId: number }) {
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [method, setMethod] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [watchlist, setWatchlist] = useState<Set<number>>(new Set());
@@ -54,8 +60,20 @@ export default function MovieRecommendations({ userId }: { userId: number }) {
           throw new Error(`Failed to fetch: ${response.statusText}`);
         }
 
-        const data = await response.json();
-        console.log('Received recommendations:', data);
+        const data: ApiResponse = await response.json();
+        console.log('Raw API response:', data);
+        console.log('Recommendation method:', data.method);
+        console.log('Number of recommendations:', data.recommendations?.length);
+        
+        if (data.recommendations) {
+          console.log('Sample recommendations:', data.recommendations.slice(0, 3).map(r => ({
+            title: r.title,
+            score: r.score,
+            avgRating: r.averageRating,
+            totalRatings: r.totalRatings,
+            genres: r.genres
+          })));
+        }
 
         if (data.error) {
           throw new Error(data.error);
@@ -66,6 +84,7 @@ export default function MovieRecommendations({ userId }: { userId: number }) {
         }
 
         setRecommendations(data.recommendations || []);
+        setMethod(data.method);
       } catch (err) {
         console.error('Error fetching recommendations:', err);
         setError(err instanceof Error ? err.message : 'Failed to load recommendations');
@@ -240,6 +259,7 @@ export default function MovieRecommendations({ userId }: { userId: number }) {
 
       <div className="text-center text-sm text-gray-400 mt-8">
         <p>Rate more movies to get even better recommendations!</p>
+        <p className="mt-2">Using {method} for recommendations</p>
       </div>
     </div>
   );

@@ -24,23 +24,40 @@ export default function RatingsPage() {
 
   async function checkUser() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError) {
+        console.error('Auth error:', authError);
+        router.push('/login');
+        return;
+      }
+
       if (user) {
-        const { data: userProfile } = await supabase
+        console.log('User authenticated:', user.email);
+        const { data: userProfile, error: profileError } = await supabase
           .from('users')
           .select('user_id')
           .eq('email', user.email)
           .single();
 
+        if (profileError) {
+          console.error('Profile error:', profileError);
+          return;
+        }
+
         if (userProfile) {
+          console.log('User profile found:', userProfile);
           setUserId(userProfile.user_id);
           await fetchUserRatings(userProfile.user_id);
+        } else {
+          console.log('No user profile found for email:', user.email);
         }
       } else {
+        console.log('No authenticated user found');
         router.push('/login');
       }
     } catch (error) {
-      console.error('Error loading user:', error);
+      console.error('Error in checkUser:', error);
     } finally {
       setLoading(false);
     }
@@ -48,6 +65,8 @@ export default function RatingsPage() {
 
   async function fetchUserRatings(userId: number) {
     try {
+      console.log('Fetching ratings for user:', userId);
+      
       // First get the ratings with movie IDs
       const { data: ratings, error: ratingsError } = await supabase
         .from('ratings')
@@ -59,6 +78,8 @@ export default function RatingsPage() {
         return;
       }
 
+      console.log('Found ratings:', ratings?.length || 0);
+
       if (!ratings || ratings.length === 0) {
         setUserRatings([]);
         return;
@@ -66,6 +87,8 @@ export default function RatingsPage() {
 
       // Then get the movies details with all ratings
       const movieIds = ratings.map(r => r.movie_id);
+      console.log('Fetching movies:', movieIds);
+      
       const { data: movies, error: moviesError } = await supabase
         .from('movies')
         .select(`
@@ -78,6 +101,8 @@ export default function RatingsPage() {
         console.error('Error fetching movies:', moviesError);
         return;
       }
+
+      console.log('Found movies:', movies?.length || 0);
 
       // Combine ratings with movie details
       const transformedRatings: UserRating[] = ratings.map(userRating => {
@@ -104,6 +129,7 @@ export default function RatingsPage() {
         };
       });
 
+      console.log('Transformed ratings:', transformedRatings.length);
       setUserRatings(transformedRatings);
     } catch (error) {
       console.error('Error in fetchUserRatings:', error);
