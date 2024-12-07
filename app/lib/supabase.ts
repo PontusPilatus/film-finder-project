@@ -1,12 +1,25 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = 'https://vfbsbufnmxfkyjbvuuwt.supabase.co'
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmYnNidWZubXhma3lqYnZ1dXd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzA4ODc0MTQsImV4cCI6MjA0NjQ2MzQxNH0.6n6hU4eQVtYndCOWqLM472OXh7hIo34whi7h3ayh-tE'
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseKey, {
+if (!supabaseUrl) {
+  throw new Error('Missing environment variable: NEXT_PUBLIC_SUPABASE_URL');
+}
+
+if (!supabaseAnonKey) {
+  throw new Error('Missing environment variable: NEXT_PUBLIC_SUPABASE_ANON_KEY');
+}
+
+// For debugging purposes
+console.log('Initializing Supabase client with URL:', supabaseUrl);
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
+    storageKey: 'film-finder-auth',
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined
   }
-}) 
+}); 
