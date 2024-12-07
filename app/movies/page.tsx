@@ -124,7 +124,7 @@ export default function Movies() {
         const ratingAverage = totalRatings > 0 ? Math.round((ratingSum / totalRatings) * 10) / 10 : null;
 
         return {
-          id: movie.movie_id.toString(),
+          movie_id: parseInt(movie.movie_id.toString()),
           title: movie.title,
           overview: movie.overview,
           posterPath: movie.poster_path || '',

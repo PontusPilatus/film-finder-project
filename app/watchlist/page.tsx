@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useRouter } from 'next/navigation';
-import type { Movie } from '../../types/movie';
+import type { Movie } from '../types/movie';
 import MovieList from '../components/MovieList';
 import { FiBookmark, FiInfo } from 'react-icons/fi';
 
@@ -97,15 +97,17 @@ export default function WatchlistPage() {
 
         return {
           movie: {
-            id: movie.movie_id.toString(),
+            movie_id: movie.movie_id,
             title: movie.title,
             overview: movie.overview,
-            posterPath: movie.poster_path || '',
-            releaseDate: movie.year?.toString() || '',
-            voteAverage: 0,
+            posterPath: movie.poster_path,
+            releaseDate: movie.release_date,
+            year: movie.year,
+            voteAverage: movie.vote_average,
             genres: movie.genres?.split('|') || [],
+            ratings: ratings,
             supabaseRatingAverage: averageRating,
-            totalRatings
+            totalRatings: totalRatings
           }
         };
       });

@@ -156,10 +156,7 @@ export default function RatingsPage() {
       const movieIds = ratings.map(r => r.movie_id);
       const { data: movies, error: moviesError } = await supabase
         .from('movies')
-        .select(`
-          *,
-          ratings:ratings(rating)
-        `)
+        .select('*, ratings:ratings(rating)')
         .in('movie_id', movieIds);
 
       if (moviesError) {
@@ -465,8 +462,16 @@ export default function RatingsPage() {
                     movies={filteredRatings
                       .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
                       .map(r => ({
-                        ...r.movie,
-                        voteAverage: r.rating
+                        movie_id: r.movie.movie_id,
+                        title: r.movie.title,
+                        overview: r.movie.overview,
+                        posterPath: r.movie.posterPath,
+                        releaseDate: r.movie.releaseDate,
+                        year: r.movie.year,
+                        voteAverage: r.rating,
+                        genres: r.movie.genres,
+                        supabaseRatingAverage: r.movie.supabaseRatingAverage,
+                        totalRatings: r.movie.totalRatings
                       }))}
                     showDelete={true}
                     onRatingDelete={async () => {

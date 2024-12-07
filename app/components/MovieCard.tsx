@@ -64,7 +64,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, 
     if (userId) {
       checkWatchlistStatus();
     }
-  }, [userId, movie.id]);
+  }, [userId, movie.movie_id]);
 
   const checkWatchlistStatus = async () => {
     try {
@@ -72,7 +72,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, 
         .from('watchlist')
         .select('*')
         .eq('user_id', userId)
-        .eq('movie_id', movie.id)
+        .eq('movie_id', movie.movie_id)
         .single();
 
       if (error && error.code !== 'PGRST116') {
@@ -97,7 +97,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, 
           .from('watchlist')
           .delete()
           .eq('user_id', userId)
-          .eq('movie_id', movie.id);
+          .eq('movie_id', movie.movie_id);
 
         if (error) throw error;
         setIsInWatchlist(false);
@@ -107,7 +107,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, 
           .insert([
             {
               user_id: userId,
-              movie_id: parseInt(movie.id)
+              movie_id: movie.movie_id
             }
           ]);
 
@@ -124,14 +124,14 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, 
 
   const handleRatingDelete = () => {
     if (onRatingDelete) {
-      onRatingDelete(movie.id);
+      onRatingDelete(movie.movie_id.toString());
     }
   };
 
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault();
     if (onDelete) {
-      onDelete(movie.id);
+      onDelete(movie.movie_id.toString());
     }
   };
 
@@ -140,7 +140,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, 
     : (movie.genres as string)?.split('|') || [];
 
   return (
-    <Link href={`/movies/${movie.id}`} className="block relative group">
+    <Link href={`/movies/${movie.movie_id}`} className="block relative group">
       <div className="glass-card p-6 transition-all duration-300 hover:scale-[1.02]">
         <div className="flex justify-between items-start gap-4">
           <div className="space-y-4 flex-grow">
@@ -157,7 +157,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, 
                 <div className="flex flex-wrap gap-2">
                   {genres.map((genre: string, index: number) => (
                     <button
-                      key={`${movie.id}-${genre}`}
+                      key={`${movie.movie_id}-${genre}`}
                       onClick={(e: React.MouseEvent) => {
                         e.preventDefault();
                         onGenreClick?.(genre.trim());
@@ -222,7 +222,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, 
             <div className="flex flex-col gap-2">
               <span className="text-sm text-gray-400">My Rating</span>
               <RatingComponent
-                movieId={movie.id}
+                movieId={movie.movie_id.toString()}
                 showDelete={showDelete}
                 onRatingDelete={handleRatingDelete}
               />
