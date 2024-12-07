@@ -1,85 +1,8 @@
 'use client'
 import Link from 'next/link';
 import { FiFilm, FiSmile, FiHeart, FiSearch, FiStar, FiBookmark } from 'react-icons/fi';
-import { useEffect, useState } from 'react'
-import { supabase } from './lib/supabase'
-import MovieList from './components/MovieList'
-import { Movie } from '../types/movie'
 
 export default function Home() {
-  const [topRatedMovies, setTopRatedMovies] = useState<Movie[]>([])
-  const [recentlyAddedMovies, setRecentlyAddedMovies] = useState<Movie[]>([])
-  const [mostRatedMovies, setMostRatedMovies] = useState<Movie[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetchMovieSuggestions()
-  }, [])
-
-  async function fetchMovieSuggestions() {
-    try {
-      setLoading(true)
-
-      // Fetch top rated movies
-      const { data: topRated } = await supabase
-        .from('movies')
-        .select(`
-          *,
-          ratings:ratings(rating)
-        `)
-        .limit(4)
-        .order('rating', { ascending: false })
-
-      // Fetch recently added movies
-      const { data: recentlyAdded } = await supabase
-        .from('movies')
-        .select(`
-          *,
-          ratings:ratings(rating)
-        `)
-        .limit(4)
-        .order('created_at', { ascending: false })
-
-      // Fetch most rated movies
-      const { data: mostRated } = await supabase
-        .from('movies')
-        .select(`
-          *,
-          ratings:ratings(rating)
-        `)
-        .limit(4)
-        .order('total_ratings', { ascending: false })
-
-      // Transform the data
-      const transformMovies = (movies: any[]) => movies.map(movie => ({
-        id: movie.movie_id.toString(),
-        title: movie.title,
-        overview: movie.overview,
-        posterPath: movie.poster_path || '',
-        releaseDate: movie.year?.toString() || '',
-        genres: movie.genres || '',
-        supabaseRatingAverage: calculateRatingAverage(movie.ratings),
-        totalRatings: movie.ratings?.length || 0,
-        voteAverage: calculateRatingAverage(movie.ratings) || 0
-      }))
-
-      setTopRatedMovies(transformMovies(topRated || []))
-      setRecentlyAddedMovies(transformMovies(recentlyAdded || []))
-      setMostRatedMovies(transformMovies(mostRated || []))
-
-    } catch (error) {
-      console.error('Error fetching suggestions:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  function calculateRatingAverage(ratings: any[]) {
-    if (!ratings?.length) return null
-    const sum = ratings.reduce((acc, r) => acc + r.rating, 0)
-    return Math.round((sum / ratings.length) * 10) / 10
-  }
-
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -220,47 +143,6 @@ export default function Home() {
                 </div>
               </Link>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Movie Suggestions Section */}
-      <section className="container-wrapper py-16">
-        <div className="space-y-16">
-          {/* Top Rated Movies */}
-          <div className="space-y-8">
-            <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">
-              Top Rated Movies
-            </h2>
-            {loading ? (
-              <div className="text-center py-8">Loading...</div>
-            ) : (
-              <MovieList movies={topRatedMovies} />
-            )}
-          </div>
-
-          {/* Recently Added */}
-          <div className="space-y-8">
-            <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">
-              Recently Added
-            </h2>
-            {loading ? (
-              <div className="text-center py-8">Loading...</div>
-            ) : (
-              <MovieList movies={recentlyAddedMovies} />
-            )}
-          </div>
-
-          {/* Most Rated Movies */}
-          <div className="space-y-8">
-            <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">
-              Most Rated Movies
-            </h2>
-            {loading ? (
-              <div className="text-center py-8">Loading...</div>
-            ) : (
-              <MovieList movies={mostRatedMovies} />
-            )}
           </div>
         </div>
       </section>
