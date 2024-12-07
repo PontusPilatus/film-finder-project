@@ -39,10 +39,29 @@ export default function Navbar() {
             {/* Logo */}
             <Link 
               href="/" 
-              className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 
-                         hover:from-blue-300 hover:via-blue-400 hover:to-blue-500 transition-all duration-300"
+              className="flex items-center gap-3 text-3xl font-bold group"
             >
-              Film Finder
+              <div className="relative w-10 h-7 flex items-start justify-center">
+                {/* Main board */}
+                <div className="absolute inset-[3px] bg-gradient-to-br from-blue-500/90 to-blue-700/90 rounded-b-[2px] shadow-sm"></div>
+                {/* Clapper top */}
+                <div className="absolute inset-x-[3px] top-[1px] -translate-y-[60%] h-[30%] bg-gradient-to-br from-blue-400/90 to-blue-600/90 
+                              origin-bottom-left transform -rotate-8 group-hover:-rotate-[20deg] transition-all duration-500 ease-out">
+                  {/* Stripes */}
+                  <div className="absolute inset-0 flex justify-around items-center px-[2px]">
+                    <div className="w-px h-[65%] bg-white/50"></div>
+                    <div className="w-px h-[65%] bg-white/50"></div>
+                    <div className="w-px h-[65%] bg-white/50"></div>
+                    <div className="w-px h-[65%] bg-white/50"></div>
+                    <div className="w-px h-[65%] bg-white/50"></div>
+                    <div className="w-px h-[65%] bg-white/50"></div>
+                  </div>
+                </div>
+              </div>
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 
+                         hover:from-blue-300 hover:via-blue-400 hover:to-blue-500 transition-all duration-300">
+                Film Finder
+              </span>
             </Link>
 
             {/* Navigation */}
