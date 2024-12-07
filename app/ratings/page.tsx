@@ -180,16 +180,17 @@ export default function RatingsPage() {
           rating: userRating.rating,
           ratedAt: userRating.created_at,
           movie: {
-            id: movie?.movie_id.toString() || '',
-            title: movie?.title || '',
-            overview: movie?.overview || '',
-            posterPath: movie?.poster_path || '',
-            releaseDate: movie?.year?.toString() || '',
-            year: movie?.year?.toString(),
-            voteAverage: userRating.rating,
+            movie_id: movie?.movie_id,
+            title: movie?.title,
+            overview: movie?.overview,
+            posterPath: movie?.poster_path,
+            releaseDate: movie?.release_date,
+            year: movie?.year,
+            voteAverage: movie?.vote_average,
             genres: movie?.genres?.split('|') || [],
+            ratings: allRatings,
             supabaseRatingAverage: averageRating,
-            totalRatings
+            totalRatings: allRatings.length
           }
         };
       });
