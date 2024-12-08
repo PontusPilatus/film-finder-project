@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import type { Movie, MovieDetails } from '../../../types/movie';
+import type { Movie, MovieDetails } from '../../types/movie';
 import MovieList from '../../components/MovieList';
 import RatingComponent from '../../components/RatingComponent';
 import { FiBookmark, FiCheck } from 'react-icons/fi';
@@ -145,7 +145,7 @@ export default function MovieDetailsPage({ params }: { params: { id: string } })
 
       // Transform movie data
       const movieDetails: MovieDetails = {
-        id: movieData.movie_id.toString(),
+        movie_id: parseInt(movieData.movie_id.toString()),
         title: movieData.title,
         overview: movieData.overview,
         posterPath: movieData.poster_path || '',
@@ -215,7 +215,7 @@ export default function MovieDetailsPage({ params }: { params: { id: string } })
               : null;
 
             return {
-              id: movie.movie_id.toString(),
+              movie_id: parseInt(movie.movie_id.toString()),
               title: movie.title,
               overview: movie.overview,
               posterPath: movie.poster_path || '',
@@ -327,7 +327,7 @@ export default function MovieDetailsPage({ params }: { params: { id: string } })
                   <div>
                     <span className="text-sm text-gray-400">My Rating</span>
                     <RatingComponent 
-                      movieId={movie.id}
+                      movieId={movie.movie_id.toString()}
                       onRatingSubmit={async () => {
                         await fetchMovieDetails();
                       }}
