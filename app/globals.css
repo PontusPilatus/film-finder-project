@@ -27,11 +27,14 @@
   }
 
   select {
-    @apply bg-background text-gray-300 border-white/5;
+    @apply bg-[#0f172a] text-blue-400 border-white/5;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
   }
 
   select option {
-    @apply bg-background text-gray-300 px-4 py-2;
+    @apply bg-[#0f172a] text-blue-400;
   }
 
   select:not([size]) {
@@ -193,14 +196,11 @@
   .select-field {
     @apply glass-card px-4 py-2.5 w-full transition-all duration-300
            hover:bg-white/[0.03] focus:ring-2 focus:ring-blue-500/40
-           cursor-pointer appearance-none text-blue-400
-           bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik01Ljk5OTg5IDQuOTc2NzFMMTAuMTk1OSAwLjc4MDc2MUwxMS42MDk5IDIuMTk0NzZMNS45OTk4OSA3LjgwNDc2TDAuMzg5ODkzIDIuMTk0NzZMMS44MDM4OSAwLjc4MDc2MUw1Ljk5OTg5IDQuOTc2NzFaIiBmaWxsPSIjOTRBM0I4Ii8+Cjwvc3ZnPgo=')] 
-           bg-[length:12px_12px] bg-[right_16px_center] bg-no-repeat;
-    position: relative;
+           cursor-pointer text-blue-400 rounded-xl
+           bg-[#0f172a]/80 backdrop-blur-xl border border-white/10;
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-    background-color: rgb(15 23 42 / 0.3);
   }
 
   /* Override mobile browser default styles */
@@ -218,7 +218,7 @@
   .select-field:-webkit-autofill:hover,
   .select-field:-webkit-autofill:focus {
     -webkit-text-fill-color: rgb(96 165 250);
-    -webkit-box-shadow: 0 0 0px 1000px rgb(15 23 42 / 0.3) inset;
+    -webkit-box-shadow: 0 0 0px 1000px rgb(15 23 42) inset;
     transition: background-color 5000s ease-in-out 0s;
   }
 
@@ -254,12 +254,53 @@
 
   /* Style for genre filter buttons */
   button.glass-card {
-    @apply text-blue-400 hover:text-blue-300;
+    @apply bg-[#0f172a]/80 backdrop-blur-xl 
+           border border-white/10 text-blue-400
+           hover:bg-white/[0.03] hover:text-blue-300
+           transition-all duration-300;
+  }
+
+  /* Selected genre button state */
+  button.glass-card.selected,
+  button.glass-card[data-selected="true"] {
+    @apply bg-gradient-to-r from-blue-500 to-blue-600 
+           text-white border-transparent
+           shadow-lg shadow-blue-500/25;
   }
 
   /* Ensure consistent color for unselected genre buttons */
   button.glass-card:not(.bg-gradient-to-r) {
     @apply text-blue-400;
+  }
+
+  /* Mobile-specific overrides */
+  @media (max-width: 768px) {
+    .select-field,
+    select,
+    button.glass-card {
+      background-color: rgb(15 23 42 / 0.8);
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+    }
+
+    .select-field option,
+    select option {
+      background-color: rgb(15 23 42);
+      color: rgb(96 165 250);
+    }
+  }
+
+  /* Override autofill styles */
+  .select-field:-webkit-autofill,
+  .select-field:-webkit-autofill:hover,
+  .select-field:-webkit-autofill:focus,
+  select:-webkit-autofill,
+  select:-webkit-autofill:hover,
+  select:-webkit-autofill:focus {
+    -webkit-text-fill-color: rgb(96 165 250);
+    -webkit-box-shadow: 0 0 0px 1000px rgb(15 23 42) inset;
+    transition: background-color 5000s ease-in-out 0s;
   }
 }
 
