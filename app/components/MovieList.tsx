@@ -1,4 +1,4 @@
-import { Movie } from '../../types/movie';
+import { Movie } from '../types/movie';
 import MovieCard from './MovieCard';
 
 interface MovieListProps {
@@ -20,7 +20,7 @@ export default function MovieList({
     <div className="grid gap-6">
       {movies.map((movie: Movie, index: number) => (
         <div 
-          key={movie.id}
+          key={movie.movie_id}
           className="fade-in-up"
           style={{ animationDelay: `${index * 100}ms` }}
         >
