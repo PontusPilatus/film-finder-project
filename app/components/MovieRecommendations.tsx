@@ -18,6 +18,7 @@ interface Recommendation {
 interface ApiResponse {
   recommendations: Recommendation[];
   method: string;
+  error?: string;
 }
 
 export default function MovieRecommendations({ userId }: { userId: number }) {
