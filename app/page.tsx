@@ -119,7 +119,7 @@ export default function Home() {
               { 
                 name: 'Sci-Fi & Fantasy', 
                 icon: FiSmile, 
-                genres: ['Science Fiction', 'Fantasy'],
+                genres: ['Sci-Fi', 'Fantasy'],
                 description: 'Journey to incredible new worlds',
                 sortBy: 'rating_desc'
               }
