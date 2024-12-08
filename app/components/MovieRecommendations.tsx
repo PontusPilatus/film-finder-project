@@ -166,7 +166,7 @@ export default function MovieRecommendations({ userId }: { userId: number }) {
           href={`/movies/${movie.movieId}`}
           className="block"
         >
-          <div className="glass-card group hover:bg-white/[0.03] transition-all duration-300">
+          <div className="glass-card movie-card group hover:bg-white/[0.03] transition-all duration-300 bg-[#0f172a]/80">
             {/* Top Section */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 border-b border-white/5">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 
@@ -195,8 +195,8 @@ export default function MovieRecommendations({ userId }: { userId: number }) {
                 className={`flex-shrink-0 w-10 h-10 rounded-xl transition-all duration-300 
                           flex items-center justify-center group-hover:scale-110 ${
                   watchlist.has(movie.movieId)
-                    ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25'
-                    : 'bg-gradient-to-br from-blue-500/20 to-purple-500/20 text-blue-400 hover:text-blue-300'
+                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25'
+                    : 'glass-card hover:bg-white/[0.03] text-blue-400'
                 }`}
                 title={watchlist.has(movie.movieId) ? "Remove from watchlist" : "Add to watchlist"}
               >

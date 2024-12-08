@@ -26,6 +26,7 @@
     --background: #0f172a;
   }
 
+  /* Base select styles */
   select {
     @apply bg-[#0f172a] text-blue-400 border-white/5;
     -webkit-appearance: none;
@@ -156,7 +157,10 @@
 
   /* Animation Classes */
   .fade-in-up {
-    @apply animate-[fadeInUp_0.5s_ease-out_forwards];
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.5s ease forwards;
+    animation-fill-mode: both;
   }
 
   .hover-glow {
@@ -171,7 +175,10 @@
 
   /* Glass Card Effect */
   .glass-card {
-    @apply rounded-2xl bg-white/[0.02] backdrop-blur-3xl border border-white/5;
+    @apply bg-[#0f172a]/80 backdrop-blur-xl 
+           border border-white/10
+           transition-all duration-300
+           rounded-xl;
   }
 
   .hero-text {
@@ -196,11 +203,11 @@
   .select-field {
     @apply glass-card px-4 py-2.5 w-full transition-all duration-300
            hover:bg-white/[0.03] focus:ring-2 focus:ring-blue-500/40
-           cursor-pointer text-blue-400 rounded-xl
-           bg-[#0f172a]/80 backdrop-blur-xl border border-white/10;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
+           cursor-pointer text-blue-400 rounded-xl;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    background-color: rgb(15 23 42 / 0.8) !important;
   }
 
   /* Override mobile browser default styles */
@@ -254,15 +261,14 @@
 
   /* Style for genre filter buttons */
   button.glass-card {
-    @apply bg-[#0f172a]/80 backdrop-blur-xl 
-           border border-white/10 text-blue-400
-           hover:bg-white/[0.03] hover:text-blue-300
-           transition-all duration-300;
+    @apply text-blue-400 hover:text-blue-300
+           hover:bg-white/[0.03];
   }
 
   /* Selected genre button state */
   button.glass-card.selected,
-  button.glass-card[data-selected="true"] {
+  button.glass-card[data-selected="true"],
+  button.glass-card[aria-selected="true"] {
     @apply bg-gradient-to-r from-blue-500 to-blue-600 
            text-white border-transparent
            shadow-lg shadow-blue-500/25;
@@ -275,19 +281,30 @@
 
   /* Mobile-specific overrides */
   @media (max-width: 768px) {
+    .glass-card,
     .select-field,
     select,
     button.glass-card {
-      background-color: rgb(15 23 42 / 0.8);
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      appearance: none;
+      background-color: rgb(15 23 42 / 0.8) !important;
+      -webkit-appearance: none !important;
+      -moz-appearance: none !important;
+      appearance: none !important;
     }
 
     .select-field option,
     select option {
-      background-color: rgb(15 23 42);
-      color: rgb(96 165 250);
+      background-color: rgb(15 23 42) !important;
+      color: rgb(96 165 250) !important;
+    }
+
+    /* Force dark background on iOS */
+    .glass-card,
+    .select-field,
+    select,
+    button.glass-card {
+      -webkit-background-clip: padding-box;
+      background-clip: padding-box;
+      -webkit-tap-highlight-color: transparent;
     }
   }
 
@@ -298,9 +315,56 @@
   select:-webkit-autofill,
   select:-webkit-autofill:hover,
   select:-webkit-autofill:focus {
-    -webkit-text-fill-color: rgb(96 165 250);
-    -webkit-box-shadow: 0 0 0px 1000px rgb(15 23 42) inset;
+    -webkit-text-fill-color: rgb(96 165 250) !important;
+    -webkit-box-shadow: 0 0 0px 1000px rgb(15 23 42) inset !important;
     transition: background-color 5000s ease-in-out 0s;
+  }
+
+  /* Override any system-level styling */
+  .glass-card,
+  .select-field,
+  select,
+  button.glass-card {
+    color-scheme: dark !important;
+  }
+
+  /* MovieCard specific styles */
+  .glass-card.movie-card {
+    @apply bg-[#0f172a]/80 backdrop-blur-xl 
+           border border-white/10
+           transition-all duration-300;
+    background-color: rgb(15 23 42 / 0.8) !important;
+  }
+
+  /* Ensure dark background on hover */
+  .glass-card.movie-card:hover,
+  .glass-card.movie-card.group:hover {
+    background-color: rgb(15 23 42 / 0.85) !important;
+  }
+
+  /* Mobile-specific overrides */
+  @media (max-width: 768px) {
+    .glass-card,
+    .glass-card.movie-card,
+    .select-field,
+    select,
+    button.glass-card {
+      background-color: rgb(15 23 42 / 0.8) !important;
+      -webkit-appearance: none !important;
+      -moz-appearance: none !important;
+      appearance: none !important;
+    }
+
+    /* Force dark background on iOS */
+    .glass-card,
+    .glass-card.movie-card,
+    .select-field,
+    select,
+    button.glass-card {
+      -webkit-background-clip: padding-box;
+      background-clip: padding-box;
+      -webkit-tap-highlight-color: transparent;
+    }
   }
 }
 

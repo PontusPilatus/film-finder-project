@@ -141,7 +141,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onGenreClick, showDelete, 
 
   return (
     <Link href={`/movies/${movie.movie_id}`} className="block relative group">
-      <div className="glass-card p-6 transition-all duration-300 hover:scale-[1.02]">
+      <div className="glass-card movie-card p-6 transition-all duration-300 hover:scale-[1.02] bg-[#0f172a]/80">
         <div className="flex justify-between items-start gap-4">
           <div className="space-y-4 flex-grow">
             <h3 className="text-xl font-bold text-gray-100 group-hover:text-blue-400 transition-colors">
