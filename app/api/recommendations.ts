@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { recommendMovies } from '../../path/to/your/recommendation/model'
+import { getGenreBasedRecommendations, getPopularityBasedRecommendations } from '../lib/recommendations'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
@@ -11,9 +11,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
       const userIdNumber = parseInt(userId as string, 10)
-      const [topRecommendations, bottomRecommendations] = await recommendMovies(userIdNumber)
-
-      return res.status(200).json({ topRecommendations, bottomRecommendations })
+      
+      // Get both types of recommendations
+      const genreRecs = await getGenreBasedRecommendations(userIdNumber)
+      const popularityRecs = await getPopularityBasedRecommendations(userIdNumber)
+      
+      return res.status(200).json({ 
+        topRecommendations: genreRecs,
+        alternativeRecommendations: popularityRecs 
+      })
     } catch (error) {
       console.error('Error fetching recommendations:', error)
       return res.status(500).json({ error: 'Internal Server Error' })

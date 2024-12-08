@@ -167,7 +167,7 @@ export default function MovieRecommendations({ userId }: { userId: number }) {
         >
           <div className="glass-card group hover:bg-white/[0.03] transition-all duration-300">
             {/* Top Section */}
-            <div className="flex items-center gap-4 p-4 border-b border-white/5">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 border-b border-white/5">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 
                             flex items-center justify-center group-hover:scale-110 transition-all duration-300 hover-glow">
                 <span className="text-blue-400 font-bold text-lg">{index + 1}</span>
@@ -208,7 +208,7 @@ export default function MovieRecommendations({ userId }: { userId: number }) {
             </div>
 
             {/* Bottom Section */}
-            <div className="grid grid-cols-3 divide-x divide-white/5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-white/5">
               {/* Rating */}
               <div className="p-4">
                 <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
@@ -247,7 +247,7 @@ export default function MovieRecommendations({ userId }: { userId: number }) {
                     <span className="text-xl font-bold text-blue-400">
                       {movie.averageRating.toFixed(1)}
                     </span>
-                    <span className="text-sm text-gray-400">
+                    <span className="text-sm text-gray-400 whitespace-nowrap">
                       ({movie.totalRatings} {movie.totalRatings === 1 ? 'rating' : 'ratings'})
                     </span>
                   </div>
