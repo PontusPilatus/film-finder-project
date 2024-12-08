@@ -193,7 +193,7 @@
   .select-field {
     @apply glass-card px-4 py-2.5 w-full transition-all duration-300
            hover:bg-white/[0.03] focus:ring-2 focus:ring-blue-500/40
-           cursor-pointer appearance-none text-gray-300
+           cursor-pointer appearance-none text-blue-400
            bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik01Ljk5OTg5IDQuOTc2NzFMMTAuMTk1OSAwLjc4MDc2MUwxMS42MDk5IDIuMTk0NzZMNS45OTk4OSA3LjgwNDc2TDAuMzg5ODkzIDIuMTk0NzZMMS44MDM4OSAwLjc4MDc2MUw1Ljk5OTg5IDQuOTc2NzFaIiBmaWxsPSIjOTRBM0I4Ii8+Cjwvc3ZnPgo=')] 
            bg-[length:12px_12px] bg-[right_16px_center] bg-no-repeat;
     position: relative;
@@ -201,7 +201,6 @@
     -moz-appearance: none;
     appearance: none;
     background-color: rgb(15 23 42 / 0.3);
-    color: rgb(209 213 219);
   }
 
   /* Override mobile browser default styles */
@@ -218,14 +217,14 @@
   .select-field:-webkit-autofill,
   .select-field:-webkit-autofill:hover,
   .select-field:-webkit-autofill:focus {
-    -webkit-text-fill-color: rgb(209 213 219);
+    -webkit-text-fill-color: rgb(96 165 250);
     -webkit-box-shadow: 0 0 0px 1000px rgb(15 23 42 / 0.3) inset;
     transition: background-color 5000s ease-in-out 0s;
   }
 
   /* Style for select options */
   .select-field option {
-    @apply px-4 py-2 cursor-pointer;
+    @apply px-4 py-2 cursor-pointer text-blue-400;
     background: var(--background);
   }
 
@@ -235,13 +234,32 @@
   }
 
   select::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(96, 165, 250, 0.1);
     border-radius: 3px;
   }
 
   select::-webkit-scrollbar-thumb {
     background-color: rgba(59, 130, 246, 0.5);
     border-radius: 3px;
+  }
+
+  /* Ensure consistent text color for all select elements */
+  select {
+    @apply text-blue-400 bg-background border-white/5;
+  }
+
+  select option {
+    @apply bg-background text-blue-400 px-4 py-2;
+  }
+
+  /* Style for genre filter buttons */
+  button.glass-card {
+    @apply text-blue-400 hover:text-blue-300;
+  }
+
+  /* Ensure consistent color for unselected genre buttons */
+  button.glass-card:not(.bg-gradient-to-r) {
+    @apply text-blue-400;
   }
 }
 
