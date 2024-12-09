@@ -19,10 +19,7 @@ export default function Register() {
       
       const { data, error } = await supabase.auth.signUp({
         email,
-        password,
-        options: {
-          emailRedirectTo: new URL('/auth/callback', window.location.origin).toString()
-        }
+        password
       })
 
       if (error) throw error
