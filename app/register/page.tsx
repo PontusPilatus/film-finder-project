@@ -7,7 +7,6 @@ import Link from 'next/link'
 export default function Register() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [username, setUsername] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
@@ -22,8 +21,7 @@ export default function Register() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/login`,
-          data: { username }
+          emailRedirectTo: `${window.location.origin}/login`
         }
       })
 
@@ -61,21 +59,6 @@ export default function Register() {
                 {error}
               </div>
             )}
-
-            <div className="space-y-2">
-              <label htmlFor="username" className="block text-sm font-medium text-gray-300">
-                Username
-              </label>
-              <input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="input-field"
-                placeholder="Your username"
-                required
-              />
-            </div>
             
             <div className="space-y-2">
               <label htmlFor="email" className="block text-sm font-medium text-gray-300">
