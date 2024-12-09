@@ -21,7 +21,7 @@ export default function Register() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+          emailRedirectTo: 'https://film-finder-project.vercel.app/auth/callback'
         }
       })
 
