@@ -1,5 +1,6 @@
 import './globals.css'
 import { Inter } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/react'
 import ClientLayout from './components/ClientLayout'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
@@ -28,6 +29,7 @@ export default function RootLayout({
             <Footer />
           </div>
         </ClientLayout>
+        <Analytics />
       </body>
     </html>
   )

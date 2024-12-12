@@ -4,6 +4,8 @@ A modern web application for discovering, rating, and tracking movies. Built wit
 
 🌐 **Live Demo**: [https://film-finder-project.vercel.app](https://film-finder-project.vercel.app)
 
+💻 **Source**: Private GitHub Repository (School Project)
+
 ## ✨ Features
 
 - 🔍 Browse and search movies
@@ -15,6 +17,7 @@ A modern web application for discovering, rating, and tracking movies. Built wit
 - 🌙 Beautiful dark mode UI with glass-morphism design
 - 🤖 Advanced recommendation system using SVD and content-based filtering
 - 🆕 Smart handling of cold-start problem for new users
+- 📈 Real-time analytics and usage tracking
 
 ## 🚀 Tech Stack
 
@@ -24,6 +27,7 @@ A modern web application for discovering, rating, and tracking movies. Built wit
 - **UI Library**: React 18
 - **Styling**: Tailwind CSS with custom glass-morphism effects
 - **Icons**: React Icons, HeroIcons
+- **Analytics**: Vercel Analytics
 
 ### Backend & Data
 - **Database**: Supabase (PostgreSQL)
@@ -31,10 +35,12 @@ A modern web application for discovering, rating, and tracking movies. Built wit
 - **ML Libraries**: TensorFlow.js, NumPy, Scikit-learn, Pandas
 - **API**: REST API with Next.js API routes
 
-### Deployment
+### Deployment & Monitoring
 - **Hosting**: Vercel
 - **Database Hosting**: Supabase Cloud
 - **CI/CD**: Vercel's GitHub Integration
+- **Analytics**: Real-time user behavior tracking
+- **Performance**: Automatic performance monitoring
 
 ## 🛠 System Architecture
 
