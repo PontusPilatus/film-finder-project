@@ -26,7 +26,7 @@ export default function Movies() {
   const [filters, setFilters] = useState<Filters>({})
   const [availableYears, setAvailableYears] = useState<number[]>([])
   const [availableGenres, setAvailableGenres] = useState<string[]>([])
-  const [sortBy, setSortBy] = useState<SortOption>('title');
+  const [sortBy, setSortBy] = useState<SortOption>('most_rated');
 
   useEffect(() => {
     fetchFilterOptions();
@@ -35,7 +35,7 @@ export default function Movies() {
     const urlParams = new URLSearchParams(window.location.search);
     const genresParam = urlParams.get('genres');
     const sortByParam = urlParams.get('sortBy') as SortOption;
-    
+
     if (genresParam) {
       const genresList = genresParam.split(',');
       setFilters(prev => ({
@@ -97,7 +97,7 @@ export default function Movies() {
       if (filters.yearTo) {
         query = query.lte('year', filters.yearTo);
       }
-      
+
       // Modified genre filtering to require ALL selected genres
       if (filters.genres && filters.genres.length > 0) {
         // Use .and() to ensure ALL conditions are met
@@ -178,7 +178,7 @@ export default function Movies() {
       const newGenres = currentGenres.includes(genre)
         ? currentGenres.filter(g => g !== genre)
         : [...currentGenres, genre];
-      
+
       return {
         ...prev,
         genres: newGenres.length > 0 ? newGenres : undefined
@@ -195,7 +195,7 @@ export default function Movies() {
         <div className="absolute inset-0 bg-gradient-to-b from-blue-900/20 via-background-dark/5 to-transparent"></div>
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-background-dark/10 to-transparent animate-pulse-slow"></div>
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent"></div>
-        
+
         <div className="relative container-wrapper">
           <div className="max-w-2xl mx-auto text-center">
             <h1 className="text-3xl md:text-4xl font-bold mb-4">
@@ -206,43 +206,43 @@ export default function Movies() {
             <p className="text-lg text-gray-300/90 mb-8">
               Find your next favorite film from our curated collection
             </p>
-
-            {/* Search Bar */}
-            <div className="flex gap-3">
-              <div className="relative flex-grow group">
-                <input 
-                  type="text" 
-                  placeholder="Search for a movie..." 
-                  className="input-field pl-12 group-hover:pl-14 transition-all duration-300"
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value)
-                    if (e.target.value === '') handleSearch()
-                  }}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                />
-                <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-blue-400 transition-all duration-300 group-hover:scale-110" />
-              </div>
-              <button 
-                className="btn-primary group whitespace-nowrap"
-                onClick={handleSearch}
-              >
-                Search
-                <span className="inline-block transition-transform group-hover:translate-x-1">→</span>
-              </button>
-            </div>
           </div>
         </div>
       </section>
 
-      {/* Filters Card */}
-      <section className="container-wrapper -mt-8 relative z-10 mb-16">
-        <div className="glass-card p-8 shadow-[0_8px_32px_rgba(0,0,0,0.24)]">
-          <div className="space-y-8">
-            {/* Filters Section */}
-            <div className="space-y-6">
-              {/* Year Range and Sort */}
-              <div className="flex flex-wrap gap-6">
+      <div className="container-wrapper -mt-8 relative z-10">
+        {/* Search and Content Container */}
+        <div className="flex flex-col gap-8">
+          {/* Search Bar */}
+          <div className="flex gap-3 max-w-2xl mx-auto w-full">
+            <div className="relative flex-grow group">
+              <input
+                type="text"
+                placeholder="Search for a movie..."
+                className="input-field pl-12 group-hover:pl-14 transition-all duration-300"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value)
+                  if (e.target.value === '') handleSearch()
+                }}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              />
+              <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-blue-400 transition-all duration-300 group-hover:scale-110" />
+            </div>
+            <button
+              className="btn-primary group whitespace-nowrap"
+              onClick={handleSearch}
+            >
+              Search
+              <span className="inline-block transition-transform group-hover:translate-x-1">→</span>
+            </button>
+          </div>
+
+          {/* Content Area */}
+          <div className="flex gap-8">
+            {/* Left Sidebar - Filters */}
+            <div className="w-80 shrink-0">
+              <div className="glass-card p-6 space-y-8 sticky top-24">
                 {/* Year Range */}
                 <div className="space-y-2">
                   <label className="text-sm text-gray-400 block">Year Range</label>
@@ -281,7 +281,7 @@ export default function Movies() {
                 <div className="space-y-2">
                   <label className="text-sm text-gray-400 block">Sort By</label>
                   <CustomSelect
-                    className="w-[200px]"
+                    className="w-full"
                     value={sortBy}
                     onChange={(value) => setSortBy(value as SortOption)}
                     options={[
@@ -292,70 +292,32 @@ export default function Movies() {
                     ]}
                   />
                 </div>
-              </div>
 
-              {/* Genre Tags */}
-              <div className="space-y-3">
-                <label className="text-sm text-gray-400 block">Genres (select multiple)</label>
-                <div className="flex flex-wrap gap-2">
-                  {availableGenres.map(genre => (
-                    <button
-                      key={genre}
-                      onClick={() => handleGenreClick(genre)}
-                      className={`px-4 py-2 rounded-xl text-sm transition-all duration-300 hover:scale-105 ${
-                        filters.genres?.includes(genre)
+                {/* Genre Tags */}
+                <div className="space-y-3">
+                  <label className="text-sm text-gray-400 block">Genres</label>
+                  <div className="flex flex-wrap gap-2">
+                    {availableGenres.map(genre => (
+                      <button
+                        key={genre}
+                        onClick={() => handleGenreClick(genre)}
+                        className={`px-3 py-1.5 rounded-xl text-sm transition-all duration-300 hover:scale-105 ${filters.genres?.includes(genre)
                           ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25'
                           : 'glass-card hover:bg-white/[0.03] text-blue-400'
-                      }`}
-                    >
-                      {genre}
-                    </button>
-                  ))}
+                          }`}
+                      >
+                        {genre}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Active Filters */}
-              {(filters.yearFrom || filters.yearTo || (filters.genres && filters.genres.length > 0)) && (
-                <div className="flex flex-wrap items-center gap-2 pt-4">
-                  {/* Show active year range filter */}
-                  {(filters.yearFrom || filters.yearTo) && (
-                    <span className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white 
-                                   flex items-center gap-2 text-sm shadow-lg shadow-blue-500/25">
-                      Year: {filters.yearFrom || 'Any'} - {filters.yearTo || 'Any'}
-                      <button
-                        onClick={() => {
-                          handleFilterChange('yearFrom', '');
-                          handleFilterChange('yearTo', '');
-                        }}
-                        className="hover:text-blue-200 transition-colors ml-2"
-                      >
-                        <FiX className="w-4 h-4" />
-                      </button>
-                    </span>
-                  )}
-
-                  {/* Show active genre filters */}
-                  {filters.genres?.map(genre => (
-                    <span
-                      key={genre}
-                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white 
-                               flex items-center gap-2 text-sm shadow-lg shadow-blue-500/25"
-                    >
-                      {genre}
-                      <button
-                        onClick={() => handleGenreClick(genre)}
-                        className="hover:text-blue-200 transition-colors ml-2"
-                      >
-                        <FiX className="w-4 h-4" />
-                      </button>
-                    </span>
-                  ))}
-
-                  {/* Clear all filters button */}
+                {/* Clear Filters */}
+                {(filters.yearFrom || filters.yearTo || (filters.genres && filters.genres.length > 0)) && (
                   <button
-                    className="px-4 py-2 rounded-xl glass-card hover:bg-white/[0.03]
+                    className="w-full px-4 py-2 rounded-xl glass-card hover:bg-white/[0.03]
                              transition-all duration-300 text-sm flex items-center gap-2
-                             hover:scale-105"
+                             justify-center hover:scale-105"
                     onClick={() => {
                       setFilters({});
                       setCurrentPage(1);
@@ -363,110 +325,107 @@ export default function Movies() {
                     }}
                   >
                     <FiFilter className="w-4 h-4" />
-                    Clear All
+                    Clear All Filters
                   </button>
+                )}
+              </div>
+            </div>
+
+            {/* Right Side - Movie List */}
+            <div className="flex-grow">
+              {loading ? (
+                <div className="text-center py-12 space-y-4">
+                  <div className="inline-block animate-spin rounded-full h-10 w-10 border-2 border-blue-400 border-t-transparent"></div>
+                  <p className="text-gray-400 animate-pulse">Loading movies...</p>
+                </div>
+              ) : movies.length === 0 ? (
+                <div className="text-center py-12 space-y-4">
+                  <div className="text-6xl">🎬</div>
+                  <p className="text-xl text-gray-400">No movies found matching your criteria.</p>
+                  <p className="text-gray-500">Try adjusting your filters or search terms.</p>
+                </div>
+              ) : (
+                <div className="space-y-12">
+                  <MovieList movies={movies} />
+
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <div className="flex justify-center gap-2">
+                      {/* Previous button */}
+                      {currentPage > 1 && (
+                        <button
+                          onClick={() => setCurrentPage(currentPage - 1)}
+                          className="glass-card px-4 py-2 text-blue-400 hover:bg-white/[0.03] transition-all duration-300 hover:scale-105 group"
+                        >
+                          <span className="inline-block transition-transform group-hover:-translate-x-1">←</span>
+                          {" "}Prev
+                        </button>
+                      )}
+
+                      {/* First page */}
+                      <button
+                        onClick={() => setCurrentPage(1)}
+                        className={`px-4 py-2 rounded-xl transition-all duration-300 hover:scale-105 ${currentPage === 1
+                          ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25'
+                          : 'glass-card hover:bg-white/[0.03] text-blue-400'
+                          }`}
+                      >
+                        1
+                      </button>
+
+                      {/* Left ellipsis */}
+                      {currentPage > 3 && <span className="px-4 py-2 text-gray-400">...</span>}
+
+                      {/* Pages around current page */}
+                      {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter(page => page !== 1 && page !== totalPages && Math.abs(currentPage - page) <= 1)
+                        .map(page => (
+                          <button
+                            key={page}
+                            onClick={() => setCurrentPage(page)}
+                            className={`px-4 py-2 rounded-xl transition-all duration-300 hover:scale-105 ${currentPage === page
+                              ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25'
+                              : 'glass-card hover:bg-white/[0.03] text-blue-400'
+                              }`}
+                          >
+                            {page}
+                          </button>
+                        ))}
+
+                      {/* Right ellipsis */}
+                      {currentPage < totalPages - 2 && <span className="px-4 py-2 text-gray-400">...</span>}
+
+                      {/* Last page */}
+                      {totalPages > 1 && (
+                        <button
+                          onClick={() => setCurrentPage(totalPages)}
+                          className={`px-4 py-2 rounded-xl transition-all duration-300 hover:scale-105 ${currentPage === totalPages
+                            ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25'
+                            : 'glass-card hover:bg-white/[0.03] text-blue-400'
+                            }`}
+                        >
+                          {totalPages}
+                        </button>
+                      )}
+
+                      {/* Next button */}
+                      {currentPage < totalPages && (
+                        <button
+                          onClick={() => setCurrentPage(currentPage + 1)}
+                          className="glass-card px-4 py-2 text-blue-400 hover:bg-white/[0.03] transition-all duration-300 hover:scale-105 group"
+                        >
+                          Next{" "}
+                          <span className="inline-block transition-transform group-hover:translate-x-1">→</span>
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           </div>
         </div>
-      </section>
-
-      {/* Movie List Section */}
-      <section className="container-wrapper py-16">
-        {loading ? (
-          <div className="text-center py-12 space-y-4">
-            <div className="inline-block animate-spin rounded-full h-10 w-10 border-2 border-blue-400 border-t-transparent"></div>
-            <p className="text-gray-400 animate-pulse">Loading movies...</p>
-          </div>
-        ) : movies.length === 0 ? (
-          <div className="text-center py-12 space-y-4">
-            <div className="text-6xl">🎬</div>
-            <p className="text-xl text-gray-400">No movies found matching your criteria.</p>
-            <p className="text-gray-500">Try adjusting your filters or search terms.</p>
-          </div>
-        ) : (
-          <div className="space-y-12">
-            <MovieList movies={movies} />
-            
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex justify-center gap-2">
-                {/* Previous button */}
-                {currentPage > 1 && (
-                  <button
-                    onClick={() => setCurrentPage(currentPage - 1)}
-                    className="glass-card px-4 py-2 text-blue-400 hover:bg-white/[0.03] transition-all duration-300 hover:scale-105 group"
-                  >
-                    <span className="inline-block transition-transform group-hover:-translate-x-1">←</span>
-                    {" "}Prev
-                  </button>
-                )}
-
-                {/* First page */}
-                <button
-                  onClick={() => setCurrentPage(1)}
-                  className={`px-4 py-2 rounded-xl transition-all duration-300 hover:scale-105 ${
-                    currentPage === 1
-                      ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25'
-                      : 'glass-card hover:bg-white/[0.03] text-blue-400'
-                  }`}
-                >
-                  1
-                </button>
-
-                {/* Left ellipsis */}
-                {currentPage > 3 && <span className="px-4 py-2 text-gray-400">...</span>}
-
-                {/* Pages around current page */}
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .filter(page => page !== 1 && page !== totalPages && Math.abs(currentPage - page) <= 1)
-                  .map(page => (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`px-4 py-2 rounded-xl transition-all duration-300 hover:scale-105 ${
-                        currentPage === page
-                          ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25'
-                          : 'glass-card hover:bg-white/[0.03] text-blue-400'
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
-
-                {/* Right ellipsis */}
-                {currentPage < totalPages - 2 && <span className="px-4 py-2 text-gray-400">...</span>}
-
-                {/* Last page */}
-                {totalPages > 1 && (
-                  <button
-                    onClick={() => setCurrentPage(totalPages)}
-                    className={`px-4 py-2 rounded-xl transition-all duration-300 hover:scale-105 ${
-                      currentPage === totalPages
-                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25'
-                        : 'glass-card hover:bg-white/[0.03] text-blue-400'
-                    }`}
-                  >
-                    {totalPages}
-                  </button>
-                )}
-
-                {/* Next button */}
-                {currentPage < totalPages && (
-                  <button
-                    onClick={() => setCurrentPage(currentPage + 1)}
-                    className="glass-card px-4 py-2 text-blue-400 hover:bg-white/[0.03] transition-all duration-300 hover:scale-105 group"
-                  >
-                    Next{" "}
-                    <span className="inline-block transition-transform group-hover:translate-x-1">→</span>
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-      </section>
+      </div>
     </div>
   )
 } 
